@@ -14,7 +14,7 @@ import AppHeader from "../../components/AppHeader";
 
 // Only two options now — Scope is global
 const OPTIONS = [
-    { key: "all", label: "DrugCards" },
+    { key: "all", label: "Drug Cards" },
     { key: "filtered", label: "Filtered Drug Cards" },
 ];
 
