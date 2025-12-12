@@ -1,3 +1,4 @@
+// app/study/all/index.tsx
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { useDrugs } from "../../../hooks/getDrugs";
@@ -9,9 +10,7 @@ import AppHeader from "../../../components/AppHeader";
 export default function StudyAllScreen() {
     const router = useRouter();
     const { scope } = useUserScope();
-    const { drugs, loading } = useDrugs(scope);   // ✅ now filtered by chosen level
-
-    if (loading) return <Text>Loading...</Text>;
+    const { drugs, loading } = useDrugs(scope);
 
     const handleStart = () => {
         const shuffled = [...drugs].sort(() => Math.random() - 0.5);
@@ -23,22 +22,36 @@ export default function StudyAllScreen() {
 
     return (
         <View style={styles.container}>
-            <AppHeader logoHeight={100} topSpacing={spacing.sm} />
+            {/* 👇 CENTERED CONTENT */}
+            <View style={styles.contentWrapper}>
+                <AppHeader />
 
-            {/* 🟦 STUDY MODE BANNER */}
-            <View style={styles.modeBanner}>
-                <Text style={styles.modeBannerText}>STUDY MODE</Text>
+                {/* 🟦 STUDY MODE BANNER */}
+                <View style={styles.modeBanner}>
+                    <Text style={styles.modeBannerText}>STUDY MODE</Text>
+                </View>
+
+                <Text style={styles.subtitle}>Study All Drugs</Text>
+
+                {loading ? (
+                    <Text style={styles.loadingText}>Loading…</Text>
+                ) : (
+                    <Pressable
+                        style={styles.startButton}
+                        onPress={handleStart}
+                    >
+                        <Text style={styles.startButtonText}>Start</Text>
+                    </Pressable>
+                )}
+
+                {/* ✅ ALWAYS GO BACK TO STUDY INDEX */}
+                <Pressable
+                    style={styles.backButton}
+                    onPress={() => router.replace("/study")}
+                >
+                    <Text style={styles.backText}>Back</Text>
+                </Pressable>
             </View>
-
-            <Text style={styles.subtitle}>Study All Drugs</Text>
-
-            <Pressable style={styles.startButton} onPress={handleStart}>
-                <Text style={styles.startButtonText}>Start</Text>
-            </Pressable>
-
-            <Pressable style={styles.backButton} onPress={() => router.back()}>
-                <Text style={styles.backText}>Back</Text>
-            </Pressable>
         </View>
     );
 }
@@ -48,13 +61,18 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: colors.background,
         paddingHorizontal: spacing.lg,
+    },
+
+    /* 🔑 Matches Home / Study / Login alignment */
+    contentWrapper: {
+        flex: 1,
+        justifyContent: "center",
         alignItems: "center",
-        paddingTop: 0,
+        paddingBottom: 120,
     },
 
     /* 🟦 STUDY MODE BANNER */
     modeBanner: {
-        marginTop: spacing.sm,
         marginBottom: spacing.lg,
         backgroundColor: "#3DA5D944",
         paddingVertical: spacing.sm,
@@ -72,8 +90,14 @@ const styles = StyleSheet.create({
     subtitle: {
         fontSize: 18,
         textAlign: "center",
-        marginBottom: spacing.xl,
+        marginBottom: spacing.md,
         color: colors.textMuted,
+    },
+
+    loadingText: {
+        fontSize: 16,
+        color: colors.textMuted,
+        marginBottom: spacing.md,
     },
 
     startButton: {
@@ -82,12 +106,12 @@ const styles = StyleSheet.create({
         paddingVertical: spacing.md,
         borderRadius: 16,
         marginBottom: spacing.md,
+        alignItems: "center",
         shadowColor: "#000",
         shadowOpacity: 0.15,
         shadowRadius: 8,
         shadowOffset: { width: 0, height: 4 },
         elevation: 4,
-        alignItems: "center",
     },
     startButtonText: {
         color: colors.buttonText,

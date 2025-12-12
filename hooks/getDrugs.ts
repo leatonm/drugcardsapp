@@ -1,4 +1,4 @@
-// hooks/getDrugs.ts
+// hooks/useDrugs.ts
 import { useState, useEffect, useMemo } from "react";
 import type { UserScope } from "./useUserScope";
 
@@ -15,7 +15,7 @@ export type Drug = {
     routes: string[];
 };
 
-export function useDrugs(scope?: UserScope) {
+export function useDrugs(scope: UserScope) {
     const [allDrugs, setAllDrugs] = useState<Drug[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -24,27 +24,26 @@ export function useDrugs(scope?: UserScope) {
             try {
                 const urls = [
                     "https://raw.githubusercontent.com/leatonm/drug-cards-data/main/emt.json",
+                    "https://raw.githubusercontent.com/leatonm/drug-cards-data/main/aemt.json",
                     "https://raw.githubusercontent.com/leatonm/drug-cards-data/main/paramedic.json",
                     "https://raw.githubusercontent.com/leatonm/drug-cards-data/main/rn.json",
                 ];
 
-                const requests = urls.map(url =>
-                    fetch(url).then(res => {
-                        if (!res.ok) {
-                            throw new Error(`Failed to fetch ${url}`);
-                        }
-                        return res.json();
-                    })
+                const responses = await Promise.all(
+                    urls.map(url =>
+                        fetch(url).then(res => {
+                            if (!res.ok) {
+                                throw new Error(`Failed to fetch ${url}`);
+                            }
+                            return res.json();
+                        })
+                    )
                 );
 
-                const [emt, paramedic, rn] = await Promise.all(requests);
-
-                // Merge into one big array like before
-                const combined: Drug[] = [...emt, ...paramedic, ...rn];
-
+                const combined: Drug[] = responses.flat();
                 setAllDrugs(combined);
-            } catch (err) {
-                console.error("Failed to fetch drug files:", err);
+            } catch (error) {
+                console.error("Failed to load drug data:", error);
             } finally {
                 setLoading(false);
             }
@@ -53,10 +52,13 @@ export function useDrugs(scope?: UserScope) {
         loadData();
     }, []);
 
-    // 🔎 Apply scope filter (EMT / Paramedic / RN / ALL)
+    // 🔎 STRICT scope filtering (no ALL anymore)
     const drugs = useMemo(() => {
-        if (!scope || scope === "ALL") return allDrugs;
-        return allDrugs.filter(d => d.scope?.includes(scope));
+        return allDrugs.filter(
+            drug =>
+                Array.isArray(drug.scope) &&
+                drug.scope.includes(scope)
+        );
     }, [allDrugs, scope]);
 
     return { drugs, loading };

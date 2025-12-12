@@ -4,7 +4,6 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import FlashCard from "../../../components/FlashCard";
 import { colors } from "../../../styles/colors";
 import { spacing } from "../../../styles/spacing";
-import { typography } from "../../../styles/typography";
 
 export default function FlashcardViewer() {
     const router = useRouter();
@@ -17,57 +16,68 @@ export default function FlashcardViewer() {
     const prev = () => index > 0 && setIndex(index - 1);
 
     return (
-        <View style={styles.container}>
+    <View style={styles.container}>
 
-            {/* 🟦 STUDY MODE BANNER */}
+        {/* TOP SPACER */}
+        <View style={{ flex: 1 }} />
+
+        {/* 🔽 GROUPED HEADER + CARD */}
+        <View style={styles.studyBlock}>
             <View style={styles.modeBanner}>
                 <Text style={styles.modeBannerText}>STUDY MODE</Text>
             </View>
 
-            {/* Flashcard centered cleanly */}
-            <View style={styles.centerSection}>
-                <View style={styles.cardWrapper}>
-                    <FlashCard drug={drugs[index]} resetFlip={true} />
-                </View>
-            </View>
+            <FlashCard drug={drugs[index]} resetFlip />
+        </View>
 
-            {/* Navigation Row */}
-            <View style={styles.controls}>
-                <Pressable
-                    style={[styles.navButton, index === 0 && styles.disabled]}
-                    onPress={prev}
-                    disabled={index === 0}
-                >
-                    <Text style={styles.navButtonText}>Previous</Text>
-                </Pressable>
+        {/* Navigation */}
+        <View style={styles.controls}>
+            <Pressable
+                style={[styles.navButton, index === 0 && styles.disabled]}
+                onPress={prev}
+                disabled={index === 0}
+            >
+                <Text style={styles.navButtonText}>Previous</Text>
+            </Pressable>
 
-                <Text style={styles.counter}>
-                    {index + 1} / {drugs.length}
-                </Text>
+            <Text style={styles.counter}>
+                {index + 1} / {drugs.length}
+            </Text>
 
-                <Pressable
-                    style={[styles.navButton, index === drugs.length - 1 && styles.disabled]}
-                    onPress={next}
-                    disabled={index === drugs.length - 1}
-                >
-                    <Text style={styles.navButtonText}>Next</Text>
-                </Pressable>
-            </View>
-
-            {/* Exit */}
-            <Pressable style={styles.exitButton} onPress={() => router.back()}>
-                <Text style={styles.exitText}>Exit Study Session</Text>
+            <Pressable
+                style={[
+                    styles.navButton,
+                    index === drugs.length - 1 && styles.disabled,
+                ]}
+                onPress={next}
+                disabled={index === drugs.length - 1}
+            >
+                <Text style={styles.navButtonText}>Next</Text>
             </Pressable>
         </View>
-    );
+
+        {/* Exit */}
+        <Pressable
+            style={styles.exitButton}
+            onPress={() => router.replace("/study")}
+        >
+            <Text style={styles.exitText}>Exit Study Session</Text>
+        </Pressable>
+
+        {/* BOTTOM SPACER */}
+        <View style={{ flex: 1 }} />
+
+    </View>
+);
+
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         paddingHorizontal: spacing.lg,
-        paddingTop: spacing.lg,
         backgroundColor: colors.background,
+        // ⛔ remove paddingTop here
     },
 
     /* 🟦 STUDY MODE BANNER */
@@ -77,8 +87,12 @@ const styles = StyleSheet.create({
         paddingVertical: spacing.sm,
         paddingHorizontal: spacing.xl,
         borderRadius: 20,
+
+        // ✅ THIS is the fix
+        marginTop: spacing.xl,
         marginBottom: spacing.xl,
     },
+
     modeBannerText: {
         color: "#3DA5D9",
         fontSize: 16,
@@ -91,30 +105,28 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: "center",
     },
+
     cardWrapper: {
         height: 330,
         width: "100%",
         justifyContent: "center",
     },
 
-    /* Navigation row */
     controls: {
         flexDirection: "row",
         justifyContent: "center",
         alignItems: "center",
-        gap: spacing.lg,          // brings buttons closer together
+        gap: spacing.lg,
         marginBottom: spacing.lg,
         width: "100%",
     },
 
-
-    /* 🔵 STUDY NAV BUTTONS */
     navButton: {
         backgroundColor: "#3DA5D9",
         paddingVertical: spacing.md,
         paddingHorizontal: spacing.xl,
         borderRadius: 16,
-        minWidth: 120,          // keep width consistent
+        minWidth: 120,
         alignItems: "center",
         shadowColor: "#000",
         shadowOpacity: 0.15,
@@ -135,11 +147,16 @@ const styles = StyleSheet.create({
 
     counter: {
         fontSize: 16,
-        color: colors.textPrimary,
-        fontWeight: "600",
+        fontWeight: "700",
+        color: "#3DA5D9",
+        backgroundColor: "#3DA5D922",
+        paddingVertical: 6,
+        paddingHorizontal: 14,
+        borderRadius: 14,
+        minWidth: 64,
+        textAlign: "center",
     },
 
-    /* Exit button (kept teal accent) */
     exitButton: {
         alignSelf: "center",
         backgroundColor: colors.accent,
@@ -148,9 +165,11 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         marginBottom: spacing.xl,
     },
+
     exitText: {
         color: colors.buttonText,
         fontSize: 16,
         fontWeight: "700",
     },
 });
+

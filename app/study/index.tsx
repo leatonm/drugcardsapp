@@ -1,11 +1,10 @@
-import { useState, useRef } from "react";
+// app/study/index.tsx
 import {
     View,
     Text,
     TouchableOpacity,
     StyleSheet,
-    Animated,
-    Pressable
+    Pressable,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { spacing } from "../../styles/spacing";
@@ -23,35 +22,45 @@ export default function StudyIndex() {
 
     return (
         <View style={styles.container}>
-            <AppHeader logoHeight={100} topSpacing={spacing.sm} />
+            {/* 👇 CENTERED CONTENT (matches Home & Login) */}
+            <View style={styles.contentWrapper}>
+                <AppHeader />
 
-            {/* 🟦 STUDY MODE BANNER */}
-            <View style={styles.modeBanner}>
-                <Text style={styles.modeBannerText}>STUDY MODE</Text>
-            </View>
+                {/* 🟦 STUDY MODE BANNER */}
+                <View style={styles.modeBanner}>
+                    <Text style={styles.modeBannerText}>STUDY MODE</Text>
+                </View>
 
-            <Text style={styles.subtitle}>Choose a study mode to begin</Text>
+                <Text style={styles.subtitle}>
+                    Choose a study mode to begin
+                </Text>
 
-            <View style={styles.options}>
-                {OPTIONS.map(opt => (
-                    <Pressable
-                        key={opt.key}
-                        style={({ pressed }) => [
-                            styles.optionButton,
-                            pressed && { transform: [{ scale: 0.97 }] }, // button tap animation
-                        ]}
-                        onPress={() => router.push(`/study/${opt.key}`)}
+                <View style={styles.options}>
+                    {OPTIONS.map(opt => (
+                        <Pressable
+                            key={opt.key}
+                            style={({ pressed }) => [
+                                styles.optionButton,
+                                pressed && { transform: [{ scale: 0.97 }] },
+                            ]}
+                            onPress={() =>
+                                router.push(`/study/${opt.key}`)
+                            }
+                        >
+                            <Text style={styles.optionButtonText}>
+                                {opt.label}
+                            </Text>
+                        </Pressable>
+                    ))}
+
+                    {/* ✅ ALWAYS GO HOME */}
+                    <TouchableOpacity
+                        style={styles.backButton}
+                        onPress={() => router.replace("/home")}
                     >
-                        <Text style={styles.optionButtonText}>{opt.label}</Text>
-                    </Pressable>
-                ))}
-
-                <TouchableOpacity
-                    style={styles.backButton}
-                    onPress={() => router.push("/home")}
-                >
-                    <Text style={styles.backText}>Back</Text>
-                </TouchableOpacity>
+                        <Text style={styles.backText}>Back</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
         </View>
     );
@@ -62,19 +71,23 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: colors.background,
         paddingHorizontal: spacing.lg,
-        alignItems: "center",
     },
 
+    /* 🔑 Same vertical alignment trick as Home/Login */
+    contentWrapper: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        paddingBottom: 120,
+    },
 
     /* 🟦 STUDY MODE BANNER */
     modeBanner: {
-        marginTop: spacing.sm,
         marginBottom: spacing.lg,
         backgroundColor: "#3DA5D944",
         paddingVertical: spacing.sm,
         paddingHorizontal: spacing.xl,
         borderRadius: 20,
-        alignSelf: "center",
     },
     modeBannerText: {
         color: "#3DA5D9",
@@ -87,7 +100,7 @@ const styles = StyleSheet.create({
     subtitle: {
         fontSize: 18,
         textAlign: "center",
-        marginBottom: spacing.xl,
+        marginBottom: spacing.md,
         color: colors.textMuted,
     },
 
@@ -103,12 +116,12 @@ const styles = StyleSheet.create({
         paddingVertical: spacing.md,
         borderRadius: 16,
         marginBottom: spacing.md,
+        alignItems: "center",
         shadowColor: "#000",
         shadowOpacity: 0.15,
         shadowRadius: 10,
         shadowOffset: { width: 0, height: 4 },
         elevation: 4,
-        alignItems: "center",
     },
     optionButtonText: {
         color: colors.buttonText,
@@ -122,7 +135,7 @@ const styles = StyleSheet.create({
         backgroundColor: colors.accent,
         paddingVertical: spacing.md,
         borderRadius: 16,
-        marginTop: spacing.lg,
+        marginTop: spacing.md,
         alignItems: "center",
         shadowColor: "#000",
         shadowOpacity: 0.1,

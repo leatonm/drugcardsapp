@@ -1,3 +1,4 @@
+// app/quiz/viewer/index.tsx
 import React, { useMemo } from "react";
 import { View, StyleSheet, Text, Pressable } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -13,10 +14,8 @@ export default function QuizViewer() {
     const dataString = params.data as string | undefined;
     const startString = params.start as string | undefined;
 
-    // Convert "true"/"false" string into real boolean
     const start = startString === "true";
 
-    // Parse array safely
     const drugs = useMemo(() => {
         try {
             const parsed = JSON.parse(dataString || "[]");
@@ -26,9 +25,8 @@ export default function QuizViewer() {
         }
     }, [dataString]);
 
-    // Shuffle only ONCE and only when start=true
     const finalDrugs = useMemo(() => {
-        if (!start) return drugs; // keep order for non-random future modes
+        if (!start) return drugs;
 
         const arr = [...drugs];
         for (let i = arr.length - 1; i > 0; i--) {
@@ -38,37 +36,42 @@ export default function QuizViewer() {
         return arr;
     }, [drugs, start]);
 
-    // If nothing was passed into viewer, show error
+    /* ❌ No data fallback */
     if (!drugs.length) {
         return (
             <View style={styles.container}>
-                <AppHeader logoHeight={90} topSpacing={spacing.sm} />
-                <Text style={styles.error}>No drug data provided.</Text>
+                <View style={styles.contentWrapper}>
+                    <AppHeader />
 
-                <Pressable
-                    onPress={() => router.push("/quiz")}
-                    style={styles.backButton}
-                >
-                    <Text style={styles.backButtonText}>Back to Quiz Menu</Text>
-                </Pressable>
+                    <Text style={styles.error}>No drug data provided.</Text>
+
+                    <Pressable
+                        onPress={() => router.replace("/quiz")}
+                        style={styles.backButton}
+                    >
+                        <Text style={styles.backButtonText}>
+                            Back to Quiz Menu
+                        </Text>
+                    </Pressable>
+                </View>
             </View>
         );
     }
 
     return (
         <View style={styles.container}>
-            <AppHeader logoHeight={90} topSpacing={spacing.sm} />
+            {/* 🔽 CENTERED CONTENT */}
+            <View style={styles.contentWrapper}>
+                <AppHeader />
 
-            {/* 🟥 QUIZ MODE BANNER */}
-            <View style={styles.modeBanner}>
-                <Text style={styles.modeBannerText}>QUIZ MODE</Text>
+                {/* 🟥 QUIZ MODE BANNER */}
+                <View style={styles.modeBanner}>
+                    <Text style={styles.modeBannerText}>QUIZ MODE</Text>
+                </View>
+
+                {/* Quiz Engine */}
+                <QuizCard drugs={finalDrugs} start={start} />
             </View>
-
-            {/* spacing before card */}
-            <View style={{ height: spacing.md }} />
-
-            {/* Quiz Engine */}
-            <QuizCard drugs={finalDrugs} start={start} />
         </View>
     );
 }
@@ -78,17 +81,23 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: colors.background,
         paddingHorizontal: spacing.lg,
-        paddingTop: spacing.md,
+    },
+
+    /* 🔑 Same centering system as Home / Study / Quiz */
+    contentWrapper: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        paddingBottom: 120,
     },
 
     /* 🟥 QUIZ MODE BANNER */
     modeBanner: {
-        alignSelf: "center",
         backgroundColor: "#DC354544",
         paddingVertical: spacing.sm,
         paddingHorizontal: spacing.xl,
         borderRadius: 20,
-        marginTop: spacing.sm,
+        marginBottom: spacing.lg,
     },
     modeBannerText: {
         color: colors.danger,
@@ -105,16 +114,15 @@ const styles = StyleSheet.create({
     },
 
     backButton: {
-        alignSelf: "center",
-        marginTop: spacing.lg,
         backgroundColor: colors.accent,
         paddingVertical: spacing.md,
         paddingHorizontal: spacing.xl,
-        borderRadius: 16
+        borderRadius: 16,
+        marginTop: spacing.lg,
     },
     backButtonText: {
         color: colors.buttonText,
         fontSize: 16,
-        fontWeight: "700"
+        fontWeight: "700",
     },
 });

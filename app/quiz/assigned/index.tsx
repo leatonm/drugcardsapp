@@ -1,25 +1,40 @@
-import { View, Text, StyleSheet } from "react-native";
+// app/quiz/assigned/index.tsx
+import { View, Text, Pressable, StyleSheet } from "react-native";
+import { useRouter } from "expo-router";
 import { colors } from "../../../styles/colors";
 import { spacing } from "../../../styles/spacing";
 import { typography } from "../../../styles/typography";
 
 export default function AssignedQuizScreen() {
+    const router = useRouter();
+
     return (
         <View style={styles.container}>
+            {/* 🔽 CENTERED CONTENT BLOCK */}
+            <View style={styles.contentWrapper}>
+                {/* 🟥 QUIZ MODE BANNER */}
+                <View style={styles.modeBanner}>
+                    <Text style={styles.modeBannerText}>QUIZ MODE</Text>
+                </View>
 
-            {/* 🟥 QUIZ MODE BANNER */}
-            <View style={styles.modeBanner}>
-                <Text style={styles.modeBannerText}>QUIZ MODE</Text>
+                <Text style={styles.title}>
+                    Instructor Assigned Quiz
+                </Text>
+
+                <Text style={styles.body}>
+                    No assigned quizzes are available yet.
+                    {"\n"}
+                    Your instructor can assign quizzes from the instructor portal.
+                </Text>
+
+                {/* Back → ALWAYS Quiz Index */}
+                <Pressable
+                    style={styles.backButton}
+                    onPress={() => router.replace("/quiz")}
+                >
+                    <Text style={styles.backText}>Back</Text>
+                </Pressable>
             </View>
-
-            <Text style={styles.title}>Instructor Assigned Quiz</Text>
-
-            <Text style={styles.body}>
-                No assigned quizzes are available yet.
-                {"\n"}
-                Your instructor can assign quizzes from the instructor portal.
-            </Text>
-
         </View>
     );
 }
@@ -27,19 +42,24 @@ export default function AssignedQuizScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: spacing.lg,
         backgroundColor: colors.background,
-        justifyContent: "flex-start",
+        paddingHorizontal: spacing.lg,
+    },
+
+    /* 🔑 Matches Home / Study / Quiz alignment */
+    contentWrapper: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        paddingBottom: 120,
     },
 
     /* 🟥 QUIZ MODE BANNER */
     modeBanner: {
-        alignSelf: "center",
-        backgroundColor: "#DC354544", // translucent red
+        backgroundColor: "#DC354544",
         paddingVertical: spacing.sm,
         paddingHorizontal: spacing.xl,
         borderRadius: 20,
-        marginTop: spacing.md,
         marginBottom: spacing.lg,
     },
     modeBannerText: {
@@ -47,20 +67,40 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: "700",
         letterSpacing: 1.1,
+        textAlign: "center",
     },
 
     title: {
         ...typography.h1,
         textAlign: "center",
         color: colors.textPrimary,
-        marginBottom: spacing.lg,
+        marginBottom: spacing.md,
     },
 
     body: {
         ...typography.body,
         textAlign: "center",
         color: colors.textMuted,
-        marginTop: spacing.lg,
         lineHeight: 22,
+        marginBottom: spacing.xl,
+    },
+
+    /* Back button */
+    backButton: {
+        width: 250,
+        backgroundColor: colors.accent,
+        paddingVertical: spacing.md,
+        borderRadius: 16,
+        alignItems: "center",
+        shadowColor: "#000",
+        shadowOpacity: 0.1,
+        shadowRadius: 5,
+        shadowOffset: { width: 0, height: 2 },
+        elevation: 3,
+    },
+    backText: {
+        color: colors.textPrimary,
+        fontSize: 16,
+        fontWeight: "600",
     },
 });

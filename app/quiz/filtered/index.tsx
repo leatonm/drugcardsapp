@@ -1,3 +1,4 @@
+// app/quiz/filtered/index.tsx
 import React, { useState, useMemo } from "react";
 import {
     View,
@@ -5,7 +6,8 @@ import {
     TouchableOpacity,
     StyleSheet,
     Modal,
-    ScrollView
+    ScrollView,
+    Pressable,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useDrugs } from "../../../hooks/getDrugs";
@@ -16,26 +18,87 @@ import AppHeader from "../../../components/AppHeader";
 
 // Category mapping
 const CATEGORY_MAP: Record<string, string[]> = {
-    Cardiac: ["Antiarrhythmic", "Vasodilator", "Sympathomimetic"],
-    Respiratory: ["Gas", "Bronchodilator"],
-    Pain: ["Opioid Analgesic", "Non-Opioid Analgesic"],
-    Sedation: ["Sedative", "Anxiolytic"],
-    Allergy: ["Antihistamine", "Epinephrine"]
+    /* ❤️ CARDIAC */
+    Cardiac: [
+        "ACE Inhibitor",
+        "Vasodilator",
+        "Sympathomimetic",
+        "Class V Antidysrhythmic",
+        "Class III Antidysrhythmic",
+        "Class Ib Antidysrhythmic",
+        "Class Ia Antiarrhythmic",
+        "Beta-Blocker (Class II Antiarrhythmic)",
+        "Calcium Channel Blocker (Class IV Antidysrhythmic)",
+        "Alpha/Beta Agonist, Vasopressor",
+        "Inotropic Vasopressor",
+        "Adrenergic Inotropic Agent",
+        "Alpha-Agonist Vasopressor",
+        "Vasopressor",
+        "Anticholinergic",                // Atropine (bradycardia)
+        "Electrolyte",                    // Mg, Ca (cardiac effects)
+        "Alkalizing Agent"                // Sodium bicarb
+    ],
+
+    /* 🫁 RESPIRATORY */
+    Respiratory: [
+        "Medical Gas",
+        "Atmospheric Gas",
+        "SABA Bronchodilator",
+        "Beta-2 Agonist",
+        "Anticholinergic",
+        "Corticosteroid",
+        "Gaseous Analgesic / Anesthetic",
+        "Inhaled Analgesic",
+        "Nasal Decongestant",
+        "Vasoconstrictor"
+    ],
+
+    /* 💉 PAIN */
+    Pain: [
+        "Opioid Analgesic",
+        "Analgesic / Antipyretic",
+        "Analgesic/Antipyretic",
+        "NSAID",
+        "NSAID Analgesic",
+        "Dissociative Analgesic",
+        "Anesthetic / Analgesic",
+        "Gaseous Analgesic / Anesthetic"
+    ],
+
+    /* 😴 SEDATION */
+    Sedation: [
+        "Sedative / Hypnotic",
+        "Sedative Hypnotic",
+        "Benzodiazepine",
+        "Anesthetic / Analgesic",
+        "Dissociative Analgesic",
+        "Antiemetic / Antipsychotic",
+        "Non-depolarizing Neuromuscular Blocker",
+        "Depolarizing Neuromuscular Blocker"
+    ],
+
+    /* 🤧 ALLERGY */
+    Allergy: [
+        "Antihistamine",
+        "Sympathomimetic",
+        "Corticosteroid",
+        "Benzodiazepine" // agitation/anxiety in allergic reactions
+    ]
 };
 
 const CATEGORIES = Object.keys(CATEGORY_MAP);
 
 export default function FilteredQuiz() {
     const router = useRouter();
-
-    // ✅ Apply user scope to drug list
     const { scope } = useUserScope();
     const { drugs, loading } = useDrugs(scope);
 
-    const [selectedCategory, setSelectedCategory] = useState < string | null > (null);
+    const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [modalVisible, setModalVisible] = useState(false);
 
-    if (loading) return <Text style={styles.loading}>Loading...</Text>;
+    if (loading) {
+        return <Text style={styles.loading}>Loading...</Text>;
+    }
 
     const filteredDrugs = useMemo(() => {
         if (!selectedCategory) return [];
@@ -52,43 +115,66 @@ export default function FilteredQuiz() {
 
         router.push({
             pathname: "/quiz/viewer",
-            params: { data: JSON.stringify(filteredDrugs), start: "true" }
+            params: { data: JSON.stringify(filteredDrugs), start: "true" },
         });
     };
 
     return (
         <View style={styles.container}>
-            <AppHeader logoHeight={100} topSpacing={spacing.sm} />
+            {/* 🔽 CENTERED CONTENT */}
+            <View style={styles.contentWrapper}>
+                <AppHeader />
 
-            {/* 🟥 QUIZ MODE BANNER */}
-            <View style={styles.modeBanner}>
-                <Text style={styles.modeBannerText}>QUIZ MODE</Text>
+                {/* 🟥 QUIZ MODE BANNER */}
+                <View style={styles.modeBanner}>
+                    <Text style={styles.modeBannerText}>QUIZ MODE</Text>
+                </View>
+
+                <Text style={styles.subtitle}>Select a category:</Text>
+
+                {/* Dropdown */}
+                <Pressable
+                    style={styles.dropdown}
+                    onPress={() => setModalVisible(true)}
+                >
+                    <Text style={styles.dropdownText}>
+                        {selectedCategory || "Select a category..."}
+                    </Text>
+                </Pressable>
+
+                {/* Start Quiz */}
+                <Pressable
+                    style={[
+                        styles.startButton,
+                        !selectedCategory && { opacity: 0.5 },
+                    ]}
+                    disabled={!selectedCategory}
+                    onPress={handleStart}
+                >
+                    <Text style={styles.startButtonText}>Start Quiz</Text>
+                </Pressable>
+
+                {/* Back → ALWAYS Quiz Index */}
+                <Pressable
+                    style={styles.backButton}
+                    onPress={() => router.replace("/quiz")}
+                >
+                    <Text style={styles.backText}>Back</Text>
+                </Pressable>
             </View>
-
-            <Text style={styles.subtitle}>Select a category:</Text>
-
-            {/* Dropdown */}
-            <TouchableOpacity
-                style={styles.dropdown}
-                onPress={() => setModalVisible(true)}
-            >
-                <Text style={styles.dropdownText}>
-                    {selectedCategory || "Select a category..."}
-                </Text>
-            </TouchableOpacity>
 
             {/* Modal */}
             <Modal
                 visible={modalVisible}
                 transparent
-                animationType="slide"
+                animationType="fade"
                 onRequestClose={() => setModalVisible(false)}
             >
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <ScrollView>
                             {CATEGORIES.map(cat => (
-                                <TouchableOpacity
+                                <Pressable
                                     key={cat}
                                     style={styles.modalButton}
                                     onPress={() => {
@@ -96,37 +182,22 @@ export default function FilteredQuiz() {
                                         setModalVisible(false);
                                     }}
                                 >
-                                    <Text style={styles.modalButtonText}>{cat}</Text>
-                                </TouchableOpacity>
+                                    <Text style={styles.modalButtonText}>
+                                        {cat}
+                                    </Text>
+                                </Pressable>
                             ))}
                         </ScrollView>
 
-                        <TouchableOpacity
+                        <Pressable
                             style={styles.cancelButton}
                             onPress={() => setModalVisible(false)}
                         >
                             <Text style={styles.cancelButtonText}>Cancel</Text>
-                        </TouchableOpacity>
+                        </Pressable>
                     </View>
                 </View>
             </Modal>
-
-            {/* Start Quiz */}
-            <TouchableOpacity
-                style={[styles.startButton, !selectedCategory && { opacity: 0.5 }]}
-                disabled={!selectedCategory}
-                onPress={handleStart}
-            >
-                <Text style={styles.startButtonText}>Start Quiz</Text>
-            </TouchableOpacity>
-
-            {/* Back */}
-            <TouchableOpacity
-                style={styles.backButton}
-                onPress={() => router.push("/quiz")}
-            >
-                <Text style={styles.backText}>Back</Text>
-            </TouchableOpacity>
         </View>
     );
 }
@@ -135,33 +206,37 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: colors.background,
-        alignItems: "center",
         paddingHorizontal: spacing.lg,
-        paddingTop: spacing.md
+    },
+
+    /* 🔑 Same vertical alignment as Home / Study */
+    contentWrapper: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        paddingBottom: 120,
     },
 
     /* 🟥 QUIZ MODE BANNER */
     modeBanner: {
-        marginTop: spacing.sm,
-        marginBottom: spacing.lg,
-        alignSelf: "center",
         backgroundColor: "#DC354544",
         paddingVertical: spacing.sm,
         paddingHorizontal: spacing.xl,
-        borderRadius: 20
+        borderRadius: 20,
+        marginBottom: spacing.lg,
     },
     modeBannerText: {
         color: colors.danger,
         fontSize: 16,
         fontWeight: "700",
-        letterSpacing: 1.2
+        letterSpacing: 1.2,
     },
 
     subtitle: {
         fontSize: 18,
         textAlign: "center",
         marginBottom: spacing.md,
-        color: colors.textMuted
+        color: colors.textMuted,
     },
 
     dropdown: {
@@ -175,33 +250,44 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.15,
         shadowRadius: 5,
         shadowOffset: { width: 0, height: 4 },
-        elevation: 4
+        elevation: 4,
     },
     dropdownText: {
         color: colors.textPrimary,
         fontSize: 16,
-        fontWeight: "600"
+        fontWeight: "600",
     },
 
-    /* Start Button */
     startButton: {
         width: 250,
         backgroundColor: colors.danger,
         paddingVertical: spacing.md,
         borderRadius: 16,
-        marginTop: spacing.md,
         marginBottom: spacing.md,
         alignItems: "center",
         shadowColor: "#000",
         shadowOpacity: 0.2,
         shadowRadius: 8,
         shadowOffset: { width: 0, height: 4 },
-        elevation: 4
+        elevation: 4,
     },
     startButtonText: {
         color: colors.buttonText,
         fontSize: 16,
-        fontWeight: "700"
+        fontWeight: "700",
+    },
+
+    backButton: {
+        width: 250,
+        backgroundColor: colors.accent,
+        paddingVertical: spacing.md,
+        borderRadius: 16,
+        alignItems: "center",
+    },
+    backText: {
+        color: colors.textPrimary,
+        fontSize: 16,
+        fontWeight: "600",
     },
 
     /* Modal */
@@ -209,7 +295,7 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: "rgba(0,0,0,0.45)",
         justifyContent: "center",
-        alignItems: "center"
+        alignItems: "center",
     },
     modalContent: {
         width: 280,
@@ -219,11 +305,6 @@ const styles = StyleSheet.create({
         maxHeight: "70%",
         borderWidth: 2,
         borderColor: "#DC3545",
-        shadowColor: "#DC3545",
-        shadowOpacity: 0.6,
-        shadowRadius: 12,
-        shadowOffset: { width: 0, height: 4 },
-        elevation: 10
     },
 
     modalButton: {
@@ -233,12 +314,12 @@ const styles = StyleSheet.create({
         marginBottom: spacing.md,
         borderWidth: 2,
         borderColor: "#DC3545",
-        alignItems: "center"
+        alignItems: "center",
     },
     modalButtonText: {
         color: "#fff",
         fontSize: 16,
-        fontWeight: "700"
+        fontWeight: "700",
     },
 
     cancelButton: {
@@ -246,32 +327,17 @@ const styles = StyleSheet.create({
         paddingVertical: spacing.md,
         borderRadius: 16,
         alignItems: "center",
-        marginTop: spacing.sm
     },
     cancelButtonText: {
         color: "#fff",
         fontSize: 16,
-        fontWeight: "700"
-    },
-
-    backButton: {
-        width: 250,
-        backgroundColor: colors.accent,
-        paddingVertical: spacing.md,
-        borderRadius: 16,
-        marginBottom: spacing.lg,
-        alignItems: "center"
-    },
-    backText: {
-        color: colors.textPrimary,
-        fontSize: 16,
-        fontWeight: "600"
+        fontWeight: "700",
     },
 
     loading: {
         textAlign: "center",
         marginTop: spacing.xl,
         fontSize: 16,
-        color: colors.textPrimary
-    }
+        color: colors.textPrimary,
+    },
 });

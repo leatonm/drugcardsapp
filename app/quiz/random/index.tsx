@@ -1,3 +1,4 @@
+// app/quiz/random/index.tsx
 import React, { useMemo } from "react";
 import { View, StyleSheet, Text, Pressable } from "react-native";
 import { useRouter } from "expo-router";
@@ -9,10 +10,12 @@ import AppHeader from "../../../components/AppHeader";
 
 export default function RandomQuiz() {
     const router = useRouter();
-    const { scope } = useUserScope();                // ✅ get selected level
-    const { drugs, loading } = useDrugs(scope);      // ✅ filter meds by scope
+    const { scope } = useUserScope();
+    const { drugs, loading } = useDrugs(scope);
 
-    if (loading) return <Text style={styles.loading}>Loading...</Text>;
+    if (loading) {
+        return <Text style={styles.loading}>Loading...</Text>;
+    }
 
     // Shuffle ONCE
     const randomDrugs = useMemo(() => {
@@ -31,36 +34,39 @@ export default function RandomQuiz() {
 
     return (
         <View style={styles.container}>
-            <AppHeader topSpacing={spacing.sm} logoHeight={100} />
+            {/* 🔽 CENTERED CONTENT */}
+            <View style={styles.contentWrapper}>
+                <AppHeader />
 
-            {/* 🟥 QUIZ MODE BANNER */}
-            <View style={styles.modeBanner}>
-                <Text style={styles.modeBannerText}>QUIZ MODE</Text>
+                {/* 🟥 QUIZ MODE BANNER */}
+                <View style={styles.modeBanner}>
+                    <Text style={styles.modeBannerText}>QUIZ MODE</Text>
+                </View>
+
+                <Text style={styles.title}>Random Quiz</Text>
+
+                {/* Start Quiz */}
+                <Pressable
+                    onPress={handleStart}
+                    style={({ pressed }) => [
+                        styles.startButton,
+                        pressed && { transform: [{ scale: 0.97 }] },
+                    ]}
+                >
+                    <Text style={styles.startText}>Start Quiz</Text>
+                </Pressable>
+
+                {/* Back → ALWAYS Quiz Index */}
+                <Pressable
+                    onPress={() => router.replace("/quiz")}
+                    style={({ pressed }) => [
+                        styles.backButton,
+                        pressed && { transform: [{ scale: 0.97 }] },
+                    ]}
+                >
+                    <Text style={styles.backText}>Back</Text>
+                </Pressable>
             </View>
-
-            <Text style={styles.title}>Random Quiz</Text>
-
-            {/* Start Quiz */}
-            <Pressable
-                onPress={handleStart}
-                style={({ pressed }) => [
-                    styles.startButton,
-                    pressed && { transform: [{ scale: 0.97 }] },
-                ]}
-            >
-                <Text style={styles.startText}>Start Quiz</Text>
-            </Pressable>
-
-            {/* Back */}
-            <Pressable
-                onPress={() => router.push("/quiz")}
-                style={({ pressed }) => [
-                    styles.backButton,
-                    pressed && { transform: [{ scale: 0.97 }] },
-                ]}
-            >
-                <Text style={styles.backText}>Back</Text>
-            </Pressable>
         </View>
     );
 }
@@ -69,19 +75,24 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: colors.background,
-        alignItems: "center",
         paddingHorizontal: spacing.lg,
-        paddingTop: spacing.md,
+    },
+
+    /* 🔑 Matches Home / Study / Quiz alignment */
+    contentWrapper: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        paddingBottom: 120,
     },
 
     /* 🟥 QUIZ MODE BANNER */
     modeBanner: {
-        marginBottom: spacing.lg,
         backgroundColor: "#DC354544",
         paddingVertical: spacing.sm,
         paddingHorizontal: spacing.xl,
         borderRadius: 20,
-        alignSelf: "center",
+        marginBottom: spacing.lg,
     },
     modeBannerText: {
         color: colors.danger,
@@ -104,7 +115,7 @@ const styles = StyleSheet.create({
         paddingVertical: spacing.md,
         borderRadius: 16,
         alignItems: "center",
-        marginBottom: spacing.lg,
+        marginBottom: spacing.md,
         shadowColor: "#000",
         shadowOpacity: 0.2,
         shadowRadius: 10,

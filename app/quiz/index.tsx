@@ -1,3 +1,4 @@
+// app/quiz/index.tsx
 import React from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
@@ -11,60 +12,68 @@ export default function QuizHome() {
 
     return (
         <View style={styles.container}>
-            <AppHeader logoHeight={100} topSpacing={spacing.sm} />
+            {/* 🔽 CENTERED CONTENT BLOCK */}
+            <View style={styles.contentWrapper}>
+                <AppHeader />
 
-            {/* 🟥 QUIZ MODE BANNER */}
-            <View style={styles.modeBanner}>
-                <Text style={styles.modeBannerText}>QUIZ MODE</Text>
-            </View>
+                {/* 🟥 QUIZ MODE BANNER */}
+                <View style={styles.modeBanner}>
+                    <Text style={styles.modeBannerText}>QUIZ MODE</Text>
+                </View>
 
-            <Text style={styles.subtitle}>Choose a quiz mode to begin</Text>
+                <Text style={styles.subtitle}>
+                    Choose a quiz mode to begin
+                </Text>
 
-            <View style={styles.options}>
+                <View style={styles.options}>
+                    {/* Random Quiz */}
+                    <Pressable
+                        onPress={() => router.push("/quiz/random")}
+                        style={({ pressed }) => [
+                            styles.quizButton,
+                            pressed && styles.pressed,
+                        ]}
+                    >
+                        <Text style={styles.quizButtonText}>Quiz</Text>
+                    </Pressable>
 
-                {/* Random Quiz */}
-                <Pressable
-                    onPress={() => router.push("/quiz/random")}
-                    style={({ pressed }) => [
-                        styles.quizButton,
-                        pressed && styles.pressed,
-                    ]}
-                >
-                    <Text style={styles.quizButtonText}>Quiz</Text>
-                </Pressable>
+                    {/* Filtered Quiz */}
+                    <Pressable
+                        onPress={() => router.push("/quiz/filtered")}
+                        style={({ pressed }) => [
+                            styles.quizButton,
+                            pressed && styles.pressed,
+                        ]}
+                    >
+                        <Text style={styles.quizButtonText}>
+                            Filtered Quiz
+                        </Text>
+                    </Pressable>
 
-                {/* Filtered Quiz */}
-                <Pressable
-                    onPress={() => router.push("/quiz/filtered")}
-                    style={({ pressed }) => [
-                        styles.quizButton,
-                        pressed && styles.pressed,
-                    ]}
-                >
-                    <Text style={styles.quizButtonText}>Filtered Quiz</Text>
-                </Pressable>
+                    {/* Assigned Quiz */}
+                    <Pressable
+                        onPress={() => router.push("/quiz/assigned")}
+                        style={({ pressed }) => [
+                            styles.textLink,
+                            pressed && { opacity: 0.6 },
+                        ]}
+                    >
+                        <Text style={styles.textLinkText}>
+                            Assigned Quiz
+                        </Text>
+                    </Pressable>
 
-                {/* Assigned Quiz link */}
-                <Pressable
-                    onPress={() => router.push("/quiz/assigned")}
-                    style={({ pressed }) => [
-                        styles.textLink,
-                        pressed && { opacity: 0.6 },
-                    ]}
-                >
-                    <Text style={styles.textLinkText}>Assigned Quiz</Text>
-                </Pressable>
-
-                {/* Back */}
-                <Pressable
-                    onPress={() => router.push("/home")}
-                    style={({ pressed }) => [
-                        styles.backButton,
-                        pressed && styles.pressedBack,
-                    ]}
-                >
-                    <Text style={styles.backText}>Back</Text>
-                </Pressable>
+                    {/* Back → ALWAYS HOME */}
+                    <Pressable
+                        onPress={() => router.replace("/home")}
+                        style={({ pressed }) => [
+                            styles.backButton,
+                            pressed && styles.pressedBack,
+                        ]}
+                    >
+                        <Text style={styles.backText}>Back</Text>
+                    </Pressable>
+                </View>
             </View>
         </View>
     );
@@ -75,14 +84,19 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: colors.background,
         paddingHorizontal: spacing.lg,
+    },
+
+    /* 🔑 Matches Home / Study alignment */
+    contentWrapper: {
+        flex: 1,
+        justifyContent: "center",
         alignItems: "center",
+        paddingBottom: 120, // keeps visual balance
     },
 
     /* 🟥 QUIZ MODE BANNER */
     modeBanner: {
-        marginTop: spacing.md,
         marginBottom: spacing.lg,
-        alignSelf: "center",
         backgroundColor: "#DC354544",
         paddingVertical: spacing.sm,
         paddingHorizontal: spacing.xl,
@@ -99,7 +113,7 @@ const styles = StyleSheet.create({
     subtitle: {
         ...typography.h2,
         textAlign: "center",
-        marginBottom: spacing.xl,
+        marginBottom: spacing.lg,
         color: colors.textMuted,
     },
 
@@ -108,7 +122,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
 
-    /* 🟥 RED QUIZ BUTTONS */
+    /* 🟥 QUIZ BUTTONS */
     quizButton: {
         width: 250,
         backgroundColor: "#DC3545",
@@ -145,7 +159,7 @@ const styles = StyleSheet.create({
         fontWeight: "600",
     },
 
-    /* Back button */
+    /* Back */
     backButton: {
         width: 250,
         backgroundColor: colors.accent,
@@ -158,12 +172,10 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         elevation: 3,
     },
-
     pressedBack: {
         transform: [{ scale: 0.97 }],
         shadowOpacity: 0.05,
     },
-
     backText: {
         color: colors.textPrimary,
         fontSize: 16,
