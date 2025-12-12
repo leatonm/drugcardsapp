@@ -11,11 +11,12 @@ import { spacing } from "../../styles/spacing";
 import { colors } from "../../styles/colors";
 import AppHeader from "../../components/AppHeader";
 
-// Only two options now — Scope is global
 const OPTIONS = [
-    { key: "all", label: "Drug Cards" },
-    { key: "filtered", label: "Filtered Drug Cards" },
+  { key: "all", label: "Drug Cards" },
+  { key: "filtered", label: "Filtered Drug Cards" },
+  { key: "lookup", label: "Drug Lookup" }, // ✅ NEW
 ];
+
 
 export default function StudyIndex() {
     const router = useRouter();

@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
     },
 
     counter: {
-        fontSize: 16,
+        fontSize: 12,
         fontWeight: "700",
         color: "#3DA5D9",
         backgroundColor: "#3DA5D922",
