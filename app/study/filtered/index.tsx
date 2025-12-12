@@ -17,74 +17,129 @@ import { colors } from "../../../styles/colors";
 import AppHeader from "../../../components/AppHeader";
 
 /* Category mapping */
-const CATEGORY_MAP: Record<string, string[]> = {
-    /* ❤️ CARDIAC */
-    Cardiac: [
-        "ACE Inhibitor",
-        "Vasodilator",
-        "Sympathomimetic",
-        "Class V Antidysrhythmic",
-        "Class III Antidysrhythmic",
-        "Class Ib Antidysrhythmic",
-        "Class Ia Antiarrhythmic",
-        "Beta-Blocker (Class II Antiarrhythmic)",
-        "Calcium Channel Blocker (Class IV Antidysrhythmic)",
-        "Alpha/Beta Agonist, Vasopressor",
-        "Inotropic Vasopressor",
-        "Adrenergic Inotropic Agent",
-        "Alpha-Agonist Vasopressor",
-        "Vasopressor",
-        "Anticholinergic",                // Atropine (bradycardia)
-        "Electrolyte",                    // Mg, Ca (cardiac effects)
-        "Alkalizing Agent"                // Sodium bicarb
-    ],
+export const CATEGORY_MAP: Record<string, string[]> = {
 
-    /* 🫁 RESPIRATORY */
-    Respiratory: [
-        "Medical Gas",
-        "Atmospheric Gas",
-        "SABA Bronchodilator",
-        "Beta-2 Agonist",
-        "Anticholinergic",
-        "Corticosteroid",
-        "Gaseous Analgesic / Anesthetic",
-        "Inhaled Analgesic",
-        "Nasal Decongestant",
-        "Vasoconstrictor"
-    ],
+  /* ❤️ CARDIAC */
+  Cardiac: [
+    "ACE Inhibitor",
+    "Vasodilator",
 
-    /* 💉 PAIN */
-    Pain: [
-        "Opioid Analgesic",
-        "Analgesic / Antipyretic",
-        "Analgesic/Antipyretic",
-        "NSAID",
-        "NSAID Analgesic",
-        "Dissociative Analgesic",
-        "Anesthetic / Analgesic",
-        "Gaseous Analgesic / Anesthetic"
-    ],
+    // Antiarrhythmics
+    "Class V Antidysrhythmic",
+    "Class III Antidysrhythmic",
+    "Class Ib Antidysrhythmic",
+    "Class Ia Antiarrhythmic",
+    "Beta-Blocker (Class II Antiarrhythmic)",
+    "Calcium Channel Blocker (Class IV Antidysrhythmic)",
 
-    /* 😴 SEDATION */
-    Sedation: [
-        "Sedative / Hypnotic",
-        "Sedative Hypnotic",
-        "Benzodiazepine",
-        "Anesthetic / Analgesic",
-        "Dissociative Analgesic",
-        "Antiemetic / Antipsychotic",
-        "Non-depolarizing Neuromuscular Blocker",
-        "Depolarizing Neuromuscular Blocker"
-    ],
+    // Pressors / inotropes
+    "Alpha/Beta Agonist, Vasopressor",
+    "Inotropic Vasopressor",
+    "Adrenergic Inotropic Agent",
+    "Alpha-Agonist Vasopressor",
+    "Vasopressor",
 
-    /* 🤧 ALLERGY */
-    Allergy: [
-        "Antihistamine",
-        "Sympathomimetic",
-        "Corticosteroid",
-        "Benzodiazepine" // agitation/anxiety in allergic reactions
-    ]
+    // Cardiac adjuncts
+    "Anticholinergic",      // atropine (bradycardia)
+    "Electrolyte",          // Mg, Ca (cardiac effects)
+    "Alkalizing Agent"      // sodium bicarbonate
+  ],
+
+  /* 🫁 RESPIRATORY */
+  Respiratory: [
+    "Atmospheric Gas",
+    "Medical Gas",
+
+    "Beta-2 Agonist",
+    "Anticholinergic",
+    "Corticosteroid",
+
+    "Gaseous Analgesic / Anesthetic",
+    "Inhaled Analgesic",
+
+    "Vasoconstrictor",      // oxymetazoline
+    "Nasal Decongestant"
+  ],
+
+  /* 💉 PAIN */
+  Pain: [
+    "Opioid Analgesic",
+
+    "Analgesic / Antipyretic",
+    "Analgesic/Antipyretic",
+
+    "NSAID",
+    "NSAID Analgesic",
+
+    "Dissociative Analgesic",
+    "Anesthetic / Analgesic",
+    "Gaseous Analgesic / Anesthetic"
+  ],
+
+  /* 😴 SEDATION / RSI */
+  Sedation: [
+    "Sedative / Hypnotic",
+    "Sedative Hypnotic",
+
+    "Benzodiazepine",
+    "Antiemetic / Antipsychotic",
+
+    "Dissociative Analgesic",
+    "Anesthetic / Analgesic",
+
+    "Non-depolarizing Neuromuscular Blocker",
+    "Depolarizing Neuromuscular Blocker"
+  ],
+
+  /* 🤧 ALLERGY / ANAPHYLAXIS */
+  Allergy: [
+    "Antihistamine",
+    "Sympathomimetic",
+    "Corticosteroid",
+    "Benzodiazepine"   // agitation/anxiety during reactions
+  ],
+
+  /* 🦠 ANTIBIOTICS */
+  Antibiotic: [
+    "Antibiotic",
+    "Antibiotic (Cephalosporin)",
+    "Antibiotic (Penicillin)",
+    "Antibiotic (Beta-lactam)",
+    "Antibiotic (Macrolide)",
+    "Antibiotic (Fluoroquinolone)",
+    "Antibiotic (Aminoglycoside)",
+    "Antibiotic (Glycopeptide)",
+    "Antibiotic (Tetracycline)",
+    "Antibiotic (Sulfonamide)",
+    "Antibiotic (Carbapenem)",
+    "Antibiotic (Lincosamide)",
+    "Antibiotic (Nitroimidazole)"
+  ],
+
+  /* 🧪 TOX / ANTIDOTES */
+  Toxicology: [
+    "Antidote",
+    "Benzodiazepine Antagonist",
+    "Cholinesterase Reactivator"
+  ],
+
+  /* 🩸 FLUIDS / ELECTROLYTES */
+  Fluids: [
+    "Isotonic Solution",
+    "Isotonic Crystalloid",
+    "Hypertonic Glucose Solution",
+    "Electrolyte"
+  ],
+
+  /* 🧠 NEURO / ENDOCRINE */
+  NeuroEndocrine: [
+    "Antidiabetic Hormone",
+    "Hormone",
+    "Pituitary Hormone",
+    "Osmotic Diuretic"
+  ]
 };
+
 
 
 const CATEGORIES = Object.keys(CATEGORY_MAP);
