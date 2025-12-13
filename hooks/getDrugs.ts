@@ -1,5 +1,5 @@
 // hooks/useDrugs.ts
-import { useState, useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { UserScope } from "./useUserScope";
 
 export type Drug = {
@@ -15,33 +15,63 @@ export type Drug = {
     routes: string[];
 };
 
-export function useDrugs(scope: UserScope) {
-    const [allDrugs, setAllDrugs] = useState<Drug[]>([]);
+/**
+ * Defines which drug files each scope is allowed to see.
+ * Higher scopes inherit lower scopes automatically.
+ */
+const SCOPE_FILES: Record<UserScope, string[]> = {
+    EMT: ["emt"],
+    AEMT: ["emt", "aemt"],
+    Paramedic: ["emt", "aemt", "paramedic"],
+    RN: ["emt", "aemt", "paramedic", "rn"],
+};
+
+/**
+ * Remote JSON file locations
+ */
+const FILE_URLS: Record<string, string> = {
+    emt: "https://raw.githubusercontent.com/leatonm/drug-cards-data/main/emt.json",
+    aemt: "https://raw.githubusercontent.com/leatonm/drug-cards-data/main/aemt.json",
+    paramedic: "https://raw.githubusercontent.com/leatonm/drug-cards-data/main/paramedic.json",
+    rn: "https://raw.githubusercontent.com/leatonm/drug-cards-data/main/rn.json",
+};
+
+/**
+ * Removes duplicate drugs using generic name as the key.
+ * First occurrence wins (lower scope versions take priority).
+ */
+function dedupeByGeneric(drugs: Drug[]) {
+    const map = new Map<string, Drug>();
+
+    for (const drug of drugs) {
+        const key = drug.name.generic.trim().toLowerCase();
+        if (!map.has(key)) {
+            map.set(key, drug);
+        }
+    }
+
+    return Array.from(map.values());
+}
+
+export function useDrugs(scope?: UserScope) {
+    const [allDrugs, setAllDrugs] = useState<Record<string, Drug[]>>({});
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        async function loadData() {
+        async function loadAll() {
             try {
-                const urls = [
-                    "https://raw.githubusercontent.com/leatonm/drug-cards-data/main/emt.json",
-                    "https://raw.githubusercontent.com/leatonm/drug-cards-data/main/aemt.json",
-                    "https://raw.githubusercontent.com/leatonm/drug-cards-data/main/paramedic.json",
-                    "https://raw.githubusercontent.com/leatonm/drug-cards-data/main/rn.json",
-                ];
-
-                const responses = await Promise.all(
-                    urls.map(url =>
-                        fetch(url).then(res => {
-                            if (!res.ok) {
-                                throw new Error(`Failed to fetch ${url}`);
-                            }
-                            return res.json();
-                        })
-                    )
+                const entries = await Promise.all(
+                    Object.entries(FILE_URLS).map(async ([key, url]) => {
+                        const res = await fetch(url);
+                        if (!res.ok) {
+                            throw new Error(`Failed to fetch ${url}`);
+                        }
+                        const data: Drug[] = await res.json();
+                        return [key, data] as const;
+                    })
                 );
 
-                const combined: Drug[] = responses.flat();
-                setAllDrugs(combined);
+                setAllDrugs(Object.fromEntries(entries));
             } catch (error) {
                 console.error("Failed to load drug data:", error);
             } finally {
@@ -49,16 +79,20 @@ export function useDrugs(scope: UserScope) {
             }
         }
 
-        loadData();
+        loadAll();
     }, []);
 
-    // 🔎 STRICT scope filtering (no ALL anymore)
     const drugs = useMemo(() => {
-        return allDrugs.filter(
-            drug =>
-                Array.isArray(drug.scope) &&
-                drug.scope.includes(scope)
+        // 🛡 Guard against undefined scope on first render
+        if (!scope) return [];
+
+        const allowedFiles = SCOPE_FILES[scope] ?? [];
+
+        const combined = allowedFiles.flatMap(
+            fileKey => allDrugs[fileKey] ?? []
         );
+
+        return dedupeByGeneric(combined);
     }, [allDrugs, scope]);
 
     return { drugs, loading };

@@ -16,59 +16,59 @@ export default function FlashcardViewer() {
     const prev = () => index > 0 && setIndex(index - 1);
 
     return (
-    <View style={styles.container}>
+        <View style={styles.container}>
 
-        {/* TOP SPACER */}
-        <View style={{ flex: 1 }} />
+            {/* TOP SPACER */}
+            <View style={{ flex: 1 }} />
 
-        {/* 🔽 GROUPED HEADER + CARD */}
-        <View style={styles.studyBlock}>
-            <View style={styles.modeBanner}>
-                <Text style={styles.modeBannerText}>STUDY MODE</Text>
+            {/* 🔽 GROUPED HEADER + CARD */}
+            <View style={styles.studyBlock}>
+                <View style={styles.modeBanner}>
+                    <Text style={styles.modeBannerText}>STUDY MODE</Text>
+                </View>
+
+                <FlashCard drug={drugs[index]} resetFlip />
             </View>
 
-            <FlashCard drug={drugs[index]} resetFlip />
-        </View>
+            {/* Navigation */}
+            <View style={styles.controls}>
+                <Pressable
+                    style={[styles.navButton, index === 0 && styles.disabled]}
+                    onPress={prev}
+                    disabled={index === 0}
+                >
+                    <Text style={styles.navButtonText}>Previous</Text>
+                </Pressable>
 
-        {/* Navigation */}
-        <View style={styles.controls}>
+                <Text style={styles.counter}>
+                    {index + 1} / {drugs.length}
+                </Text>
+
+                <Pressable
+                    style={[
+                        styles.navButton,
+                        index === drugs.length - 1 && styles.disabled,
+                    ]}
+                    onPress={next}
+                    disabled={index === drugs.length - 1}
+                >
+                    <Text style={styles.navButtonText}>Next</Text>
+                </Pressable>
+            </View>
+
+            {/* Exit */}
             <Pressable
-                style={[styles.navButton, index === 0 && styles.disabled]}
-                onPress={prev}
-                disabled={index === 0}
+                style={styles.exitButton}
+                onPress={() => router.replace("/study")}
             >
-                <Text style={styles.navButtonText}>Previous</Text>
+                <Text style={styles.exitText}>Exit Study Session</Text>
             </Pressable>
 
-            <Text style={styles.counter}>
-                {index + 1} / {drugs.length}
-            </Text>
+            {/* BOTTOM SPACER */}
+            <View style={{ flex: 1 }} />
 
-            <Pressable
-                style={[
-                    styles.navButton,
-                    index === drugs.length - 1 && styles.disabled,
-                ]}
-                onPress={next}
-                disabled={index === drugs.length - 1}
-            >
-                <Text style={styles.navButtonText}>Next</Text>
-            </Pressable>
         </View>
-
-        {/* Exit */}
-        <Pressable
-            style={styles.exitButton}
-            onPress={() => router.replace("/study")}
-        >
-            <Text style={styles.exitText}>Exit Study Session</Text>
-        </Pressable>
-
-        {/* BOTTOM SPACER */}
-        <View style={{ flex: 1 }} />
-
-    </View>
-);
+    );
 
 }
 
@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
     },
 
     counter: {
-        fontSize: 12,
+        fontSize: 8,
         fontWeight: "700",
         color: "#3DA5D9",
         backgroundColor: "#3DA5D922",

@@ -37,104 +37,109 @@ export default function DrugLookup() {
     return <Text style={styles.loading}>Loading…</Text>;
   }
 
- return (
-  <View style={styles.container}>
+  return (
+    <View style={styles.container}>
 
-    {/* 🔹 HEADER ZONE */}
-    <View style={styles.header}>
-      <AppHeader />
-    </View>
-
-    {/* 🔹 MAIN CONTENT */}
-    <View style={styles.content}>
-      <View style={styles.banner}>
-        <Text style={styles.bannerText}>DRUG LOOKUP</Text>
+      {/* 🔹 HEADER ZONE */}
+      <View style={styles.header}>
+        <AppHeader />
       </View>
 
-      <TextInput
-        placeholder="Search drug name…"
-        placeholderTextColor={colors.textMuted}
-        style={styles.search}
-        value={query}
-        onChangeText={setQuery}
-        autoCorrect={false}
-        autoCapitalize="none"
-        returnKeyType="search"
-        clearButtonMode="while-editing"
-      />
+      {/* 🔹 MAIN CONTENT */}
+      <View style={styles.content}>
+        <View style={styles.banner}>
+          <Text style={styles.bannerText}>DRUG LOOKUP</Text>
+        </View>
 
-      <View style={styles.listWrapper}>
-        <FlatList
-          data={filtered}
-          keyExtractor={(item) => item.id}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => (
-            <Pressable
-              style={({ pressed }) => [
-                styles.row,
-                pressed && { transform: [{ scale: 0.99 }], opacity: 0.9 },
-              ]}
-              onPress={() =>
-                router.push({
-                  pathname: "/study/lookup/viewer",
-                  params: { drug: JSON.stringify(item) },
-                })
-              }
-            >
-              <Text style={styles.name}>{item.name.generic}</Text>
-              {!!item.name.brand?.length && (
-                <Text style={styles.brand}>
-                  {item.name.brand.join(", ")}
-                </Text>
-              )}
-            </Pressable>
-          )}
-          ListEmptyComponent={
-            <Text style={styles.empty}>
-              No results. Try a different search.
-            </Text>
-          }
-        />
+        <View style={styles.searchWrapper}>
+          <TextInput
+            placeholder="Search drug name…"
+            placeholderTextColor={colors.textMuted}
+            style={styles.search}
+            value={query}
+            onChangeText={setQuery}
+            autoCorrect={false}
+            autoCapitalize="none"
+            returnKeyType="search"
+            clearButtonMode="while-editing"
+          />
+        </View>
+
+        <View style={styles.listWrapper}>
+          <FlatList
+            data={filtered}
+            keyExtractor={(item) => item.id}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={styles.listContent}
+            renderItem={({ item }) => (
+              <View style={styles.rowWrapper}>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.row,
+                    pressed && { transform: [{ scale: 0.99 }], opacity: 0.9 },
+                  ]}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/study/lookup/viewer",
+                      params: { drug: JSON.stringify(item) },
+                    })
+                  }
+                >
+                  <Text style={styles.name}>{item.name.generic}</Text>
+                  {!!item.name.brand?.length && (
+                    <Text style={styles.brand}>
+                      {item.name.brand.join(", ")}
+                    </Text>
+                  )}
+                </Pressable>
+              </View>
+            )}
+
+            ListEmptyComponent={
+              <Text style={styles.empty}>
+                No results. Try a different search.
+              </Text>
+            }
+          />
+        </View>
       </View>
-    </View>
 
-    {/* 🔹 FOOTER */}
-    <View style={styles.footer}>
-      <Pressable
-        style={styles.back}
-        onPress={() => router.replace("/study")}
-      >
-        <Text style={styles.backText}>Back</Text>
-      </Pressable>
-    </View>
+      {/* 🔹 FOOTER */}
+      <View style={styles.footer}>
+        <Pressable
+          style={styles.back}
+          onPress={() => router.replace("/study")}
+        >
+          <Text style={styles.backText}>Back</Text>
+        </Pressable>
+      </View>
 
-  </View>
-);
+    </View>
+  );
 
 
 }
 
 const styles = StyleSheet.create({
   container: {
-  flex: 1,
-  backgroundColor: colors.background,
-  paddingHorizontal: spacing.lg,
-},
+    flex: 1,
+    backgroundColor: colors.background,
+    paddingHorizontal: spacing.lg,
+  },
 
-header: {
-  paddingTop: spacing.lg,     // 👈 pushes logo down naturally
-  alignItems: "center",
-},
-content: {
-  flex: 1,
-  paddingTop: spacing.sm,
-},
-footer: {
-  paddingBottom: spacing.lg,  // 👈 keeps Back button off screen edge
-  alignItems: "center",
-},
+  header: {
+    paddingTop: spacing.lg,     // 👈 pushes logo down naturally
+    alignItems: "center",
+  },
+  content: {
+    flex: 1,
+    paddingTop: spacing.sm,
+  },
+  footer: {
+    paddingBottom: spacing.lg,  // 👈 keeps Back button off screen edge
+    alignItems: "center",
+  },
   banner: {
     alignSelf: "center",
     backgroundColor: "#3DA5D944",
@@ -153,7 +158,8 @@ footer: {
   },
 
   search: {
-    width: "100%",
+    width: "100%",          // 👈 important
+    maxWidth: 420,          // 👈 matches card width
     backgroundColor: colors.card,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.md,
@@ -170,8 +176,19 @@ footer: {
   listContent: {
     paddingBottom: spacing.md,
   },
+  searchWrapper: {
+    width: "100%",
+    alignItems: "center",
+  },
+
+  rowWrapper: {
+    width: "100%",
+    alignItems: "center",
+  },
 
   row: {
+    width: "100%",          // 👈 important
+    maxWidth: 420,          // 👈 matches card width
     backgroundColor: colors.card,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.md,
