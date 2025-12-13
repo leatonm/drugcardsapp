@@ -51,6 +51,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: spacing.sm,
     backgroundColor: colors.background,
+    paddingBottom: spacing.lg,
   },
 
   footerText: {

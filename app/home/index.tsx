@@ -1,4 +1,3 @@
-// app/home/index.tsx
 import { useState, useRef, useEffect } from "react";
 import {
     View,
@@ -9,6 +8,7 @@ import {
     Animated,
     Pressable,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { spacing } from "../../styles/spacing";
 import { colors } from "../../styles/colors";
@@ -16,16 +16,34 @@ import AppHeader from "../../components/AppHeader";
 import { useUserScope, UserScope } from "../../hooks/useUserScope";
 
 const SCOPE_OPTIONS: UserScope[] = ["EMT", "AEMT", "RN", "Paramedic"];
+const DISCLAIMER_KEY = "homeDisclaimerAccepted";
 
 export default function HomeScreen() {
     const { scope, updateScope } = useUserScope();
-    const [modalVisible, setModalVisible] = useState(false);
+
+    const [scopeModalVisible, setScopeModalVisible] = useState(false);
+    const [disclaimerVisible, setDisclaimerVisible] = useState(false);
 
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const scaleAnim = useRef(new Animated.Value(0.85)).current;
 
+    /* 🔍 Check disclaimer on first load */
     useEffect(() => {
-        if (!modalVisible) return;
+        const checkDisclaimer = async () => {
+            const accepted = await AsyncStorage.getItem(DISCLAIMER_KEY);
+            if (!accepted) setDisclaimerVisible(true);
+        };
+        checkDisclaimer();
+    }, []);
+
+    const acceptDisclaimer = async () => {
+        await AsyncStorage.setItem(DISCLAIMER_KEY, "true");
+        setDisclaimerVisible(false);
+    };
+
+    /* 🎬 Animate scope modal */
+    useEffect(() => {
+        if (!scopeModalVisible) return;
 
         fadeAnim.setValue(0);
         scaleAnim.setValue(0.85);
@@ -42,13 +60,10 @@ export default function HomeScreen() {
                 useNativeDriver: true,
             }),
         ]).start();
-    }, [modalVisible]);
+    }, [scopeModalVisible]);
 
     return (
         <View style={styles.container}>
-            
-
-            {/* 👇 CENTERED CONTENT */}
             <View style={styles.contentWrapper}>
                 <AppHeader />
                 <Text style={styles.subtitle}>Select a mode to begin.</Text>
@@ -72,11 +87,19 @@ export default function HomeScreen() {
                 {/* LEVEL SELECTOR */}
                 <TouchableOpacity
                     style={styles.levelContainer}
-                    onPress={() => setModalVisible(true)}
+                    onPress={() => setScopeModalVisible(true)}
                 >
                     <Text style={styles.levelLabel}>Level:</Text>
                     <Text style={styles.levelValue}>{scope}</Text>
                 </TouchableOpacity>
+
+                {/* Disclaimer Link */}
+                <Pressable
+                    onPress={() => setDisclaimerVisible(true)}
+                    style={styles.disclaimerLink}
+                >
+                    <Text style={styles.disclaimerText}>Disclaimer</Text>
+                </Pressable>
 
                 {/* Instructor Portal */}
                 <Pressable
@@ -87,16 +110,14 @@ export default function HomeScreen() {
                 </Pressable>
             </View>
 
-            {/* MODAL (unchanged) */}
+            {/* SCOPE MODAL */}
             <Modal
-                visible={modalVisible}
+                visible={scopeModalVisible}
                 transparent
                 animationType="none"
-                onRequestClose={() => setModalVisible(false)}
+                onRequestClose={() => setScopeModalVisible(false)}
             >
-                <Animated.View
-                    style={[styles.modalOverlay, { opacity: fadeAnim }]}
-                >
+                <Animated.View style={[styles.modalOverlay, { opacity: fadeAnim }]}>
                     <Animated.View
                         style={[
                             styles.modalContent,
@@ -108,19 +129,18 @@ export default function HomeScreen() {
                                 key={option}
                                 style={[
                                     styles.modalButton,
-                                    option === scope &&
-                                        styles.modalButtonActive,
+                                    option === scope && styles.modalButtonActive,
                                 ]}
                                 onPress={() => {
                                     updateScope(option);
-                                    setModalVisible(false);
+                                    setScopeModalVisible(false);
                                 }}
                             >
                                 <Text
                                     style={[
                                         styles.modalButtonText,
                                         option === scope &&
-                                            styles.modalButtonTextActive,
+                                        styles.modalButtonTextActive,
                                     ]}
                                 >
                                     {option}
@@ -133,16 +153,47 @@ export default function HomeScreen() {
                                 styles.modalButton,
                                 { backgroundColor: colors.accent },
                             ]}
-                            onPress={() => setModalVisible(false)}
+                            onPress={() => setScopeModalVisible(false)}
                         >
                             <Text style={styles.modalButtonText}>Cancel</Text>
                         </TouchableOpacity>
                     </Animated.View>
                 </Animated.View>
             </Modal>
+
+            {/* DISCLAIMER MODAL */}
+            <Modal visible={disclaimerVisible} transparent animationType="fade">
+                <View style={styles.modalOverlay}>
+                    <View style={styles.disclaimerModal}>
+                        <Text style={styles.disclaimerTitle}>
+                            Medical Disclaimer
+                        </Text>
+
+                        <Text style={styles.disclaimerBody}>
+                            This application is for educational purposes only.
+                            It is not a substitute for professional medical
+                            advice, clinical judgment, or local protocols.
+                            Drug information may vary by agency and medical
+                            direction. Always follow your local protocols and
+                            consult medical control when required.
+                        </Text>
+
+                        <TouchableOpacity
+                            style={styles.acceptButton}
+                            onPress={acceptDisclaimer}
+                        >
+                            <Text style={styles.acceptButtonText}>
+                                I Understand
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }
+
+/* ================= STYLES ================= */
 
 const styles = StyleSheet.create({
     container: {
@@ -151,12 +202,12 @@ const styles = StyleSheet.create({
         paddingHorizontal: spacing.lg,
     },
 
- contentWrapper: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingBottom: 120, // 👈 SAME trick you used on Login
-},
+    contentWrapper: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        paddingBottom: 120,
+    },
 
     subtitle: {
         fontSize: 18,
@@ -190,7 +241,7 @@ const styles = StyleSheet.create({
 
     levelContainer: {
         marginTop: spacing.md,
-        marginBottom: spacing.lg,
+        marginBottom: spacing.md,
         backgroundColor: "#3DA5D922",
         paddingVertical: spacing.sm,
         paddingHorizontal: spacing.lg,
@@ -212,6 +263,17 @@ const styles = StyleSheet.create({
         color: "#3DA5D9",
         fontWeight: "800",
         textDecorationLine: "underline",
+    },
+
+    disclaimerLink: {
+        marginBottom: spacing.sm,
+    },
+
+    disclaimerText: {
+        fontSize: 14,
+        color: colors.accent,
+        textDecorationLine: "underline",
+        fontWeight: "600",
     },
 
     instructorLink: {
@@ -268,6 +330,42 @@ const styles = StyleSheet.create({
 
     modalButtonTextActive: {
         color: colors.buttonText,
+        fontWeight: "700",
+    },
+
+    disclaimerModal: {
+        width: "85%",
+        backgroundColor: colors.background,
+        borderRadius: 20,
+        padding: spacing.lg,
+        borderWidth: 2,
+        borderColor: colors.accent,
+    },
+
+    disclaimerTitle: {
+        fontSize: 20,
+        fontWeight: "800",
+        marginBottom: spacing.sm,
+        textAlign: "center",
+    },
+
+    disclaimerBody: {
+        fontSize: 14,
+        lineHeight: 20,
+        textAlign: "center",
+        marginBottom: spacing.lg,
+    },
+
+    acceptButton: {
+        backgroundColor: colors.accent,
+        paddingVertical: spacing.md,
+        borderRadius: 14,
+        alignItems: "center",
+    },
+
+    acceptButtonText: {
+        color: colors.buttonText,
+        fontSize: 16,
         fontWeight: "700",
     },
 });
