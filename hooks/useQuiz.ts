@@ -12,8 +12,18 @@ type Question = {
     choices: string[];
 };
 
+
 function generateQuestion(drug: Drug, allDrugs: Drug[]): Question {
-    const questionTypes = ["adult", "pediatric", "class", "indication", "contra"];
+    const questionTypes: string[] = [];
+
+    if (drug.adultDose) questionTypes.push("adult");
+    if (drug.pediatricDose) questionTypes.push("pediatric");
+
+    questionTypes.push("class", "indication", "contra", "mechanism");
+
+    if (drug.interactions?.length) questionTypes.push("interaction");
+    if (drug.education?.length) questionTypes.push("education");
+
     const type = questionTypes[Math.floor(Math.random() * questionTypes.length)];
 
     let questionText = "";
@@ -22,79 +32,91 @@ function generateQuestion(drug: Drug, allDrugs: Drug[]): Question {
     switch (type) {
         case "adult":
             questionText = "What is the adult dosage?";
-            correctAnswer = drug.adultDose || "N/A";
+            correctAnswer = drug.adultDose!;
             break;
 
         case "pediatric":
             questionText = "What is the pediatric dosage?";
-            correctAnswer = drug.pediatricDose || "N/A";
+            correctAnswer = drug.pediatricDose!;
             break;
 
         case "class":
             questionText = "What is the drug class?";
-            correctAnswer = drug.class || "N/A";
+            correctAnswer = drug.class;
+            break;
+
+        case "mechanism":
+            questionText = "What is the mechanism of action?";
+            correctAnswer = drug.mechanism;
             break;
 
         case "indication":
             questionText = "Which of these is an indication?";
             correctAnswer =
-                drug.indications?.[Math.floor(Math.random() * drug.indications.length)] ||
-                "N/A";
+                drug.indications[Math.floor(Math.random() * drug.indications.length)];
             break;
 
         case "contra":
             questionText = "Which of these is a contraindication?";
             correctAnswer =
-                drug.contraindications?.[Math.floor(Math.random() * drug.contraindications.length)] ||
-                "N/A";
+                drug.contraindications[Math.floor(Math.random() * drug.contraindications.length)];
+            break;
+
+        case "interaction":
+            questionText = "Which of these is a drug interaction?";
+            correctAnswer =
+                drug.interactions![Math.floor(Math.random() * drug.interactions!.length)];
+            break;
+
+        case "education":
+            questionText = "Which is appropriate patient education?";
+            correctAnswer =
+                drug.education![Math.floor(Math.random() * drug.education!.length)];
             break;
     }
 
-    // Build wrong answers
-    const wrongAnswers: string[] = [];
+    //Guaranteed unique answers
+    const wrongAnswers = new Set<string>();
 
-    for (let i = 0; i < allDrugs.length && wrongAnswers.length < 2; i++) {
+    while (wrongAnswers.size < 2) {
         const rand = allDrugs[Math.floor(Math.random() * allDrugs.length)];
         let wrong = "";
 
         switch (type) {
             case "adult":
-                wrong = rand.adultDose;
+                wrong = rand.adultDose ?? "";
                 break;
-
             case "pediatric":
-                wrong = rand.pediatricDose;
+                wrong = rand.pediatricDose ?? "";
                 break;
-
             case "class":
                 wrong = rand.class;
                 break;
-
+            case "mechanism":
+                wrong = rand.mechanism;
+                break;
             case "indication":
-                wrong = rand.indications?.[Math.floor(Math.random() * rand.indications.length)];
+                wrong = rand.indications?.[0] ?? "";
                 break;
-
             case "contra":
-                wrong = rand.contraindications?.[Math.floor(Math.random() * rand.contraindications.length)];
+                wrong = rand.contraindications?.[0] ?? "";
+                break;
+            case "interaction":
+                wrong = rand.interactions?.[0] ?? "";
+                break;
+            case "education":
+                wrong = rand.education?.[0] ?? "";
                 break;
         }
 
-        if (
-            wrong &&
-            wrong !== correctAnswer &&
-            !wrongAnswers.includes(wrong) &&
-            wrong.length > 0
-        ) {
-            wrongAnswers.push(wrong);
+        if (wrong && wrong !== correctAnswer) {
+            wrongAnswers.add(wrong);
         }
     }
 
-    // ⛑ Ensure 2 wrong answers ALWAYS exist
-    while (wrongAnswers.length < 2) {
-        wrongAnswers.push("Not applicable");
-    }
-
-    const choices = [...wrongAnswers, correctAnswer].sort(() => Math.random() - 0.5);
+    const choices = [...wrongAnswers, correctAnswer].sort(
+        () => Math.random() - 0.5
+    );
 
     return {
         question: questionText,
