@@ -98,7 +98,15 @@ export default function FlashCard({ drug, resetFlip = false }: FlashCardProps) {
                 {/* ---------- BACK ---------- */}
                 <Animated.View style={[styles.absoluteCard, backStyle]}>
                     <View style={styles.card}>
-                        <ScrollView style={{ flex: 1 }}>
+                        <ScrollView style={{ flex: 1 }}
+    contentContainerStyle={{
+        paddingRight: spacing.xl,
+        paddingBottom: spacing.lg,
+    }}
+    showsVerticalScrollIndicator
+    indicatorStyle="white"
+>
+
 
                             <Text style={styles.detail}>
                                 <Text style={styles.label}>Mechanism:</Text>{" "}
