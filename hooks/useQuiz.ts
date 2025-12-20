@@ -175,7 +175,7 @@ function generateQuestion(drug: Drug, allDrugs: Drug[]): Question | null {
 // QUIZ HOOK
 // ---------------------
 
-export function useQuiz(drugs: Drug[]) {
+export function useQuiz(drugs: Drug[], questionCount: number = 10) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [score, setScore] = useState(0);
     const [finished, setFinished] = useState(false);
@@ -186,7 +186,10 @@ export function useQuiz(drugs: Drug[]) {
             return [];
         }
 
-        return drugs
+        // Shuffle drugs first to randomize question selection
+        const shuffledDrugs = shuffleArray([...drugs]);
+
+        const allQuestions = shuffledDrugs
             .map((drug) => {
                 const question = generateQuestion(drug, drugs);
                 if (!question) return null;
@@ -196,7 +199,10 @@ export function useQuiz(drugs: Drug[]) {
                 };
             })
             .filter((q): q is NonNullable<typeof q> => q !== null);
-    }, [drugs]);
+
+        // Limit to the requested question count
+        return allQuestions.slice(0, questionCount);
+    }, [drugs, questionCount]);
 
     const current = questions[currentIndex];
 

@@ -143,6 +143,8 @@ export const CATEGORY_MAP: Record<string, string[]> = {
 
 const CATEGORIES = Object.keys(CATEGORY_MAP);
 
+const QUESTION_COUNTS = [10, 20, 40, 50];
+
 export default function FilteredQuiz() {
     const router = useRouter();
     const { scope } = useUserScope();
@@ -150,6 +152,7 @@ export default function FilteredQuiz() {
 
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [modalVisible, setModalVisible] = useState(false);
+    const [questionCount, setQuestionCount] = useState<number>(10);
 
     if (loading) {
         return <Text style={styles.loading}>Loading...</Text>;
@@ -170,7 +173,11 @@ export default function FilteredQuiz() {
 
         router.push({
             pathname: "/quiz/viewer",
-            params: { data: JSON.stringify(filteredDrugs), start: "true" },
+            params: { 
+                data: JSON.stringify(filteredDrugs), 
+                start: "true",
+                questionCount: questionCount.toString(),
+            },
         });
     };
 
@@ -196,6 +203,30 @@ export default function FilteredQuiz() {
                         {selectedCategory || "Select a category..."}
                     </Text>
                 </Pressable>
+
+                {/* Question Count Selector */}
+                <Text style={styles.label}>Number of Questions:</Text>
+                <View style={styles.questionCountContainer}>
+                    {QUESTION_COUNTS.map((count) => (
+                        <Pressable
+                            key={count}
+                            onPress={() => setQuestionCount(count)}
+                            style={[
+                                styles.countButton,
+                                questionCount === count && styles.countButtonSelected,
+                            ]}
+                        >
+                            <Text
+                                style={[
+                                    styles.countButtonText,
+                                    questionCount === count && styles.countButtonTextSelected,
+                                ]}
+                            >
+                                {count}
+                            </Text>
+                        </Pressable>
+                    ))}
+                </View>
 
                 {/* Start Quiz */}
                 <Pressable
@@ -394,5 +425,48 @@ const styles = StyleSheet.create({
         marginTop: spacing.xl,
         fontSize: 16,
         color: colors.textPrimary,
+    },
+
+    label: {
+        fontSize: 16,
+        fontWeight: "600",
+        color: colors.textMuted,
+        marginBottom: spacing.md,
+        marginTop: spacing.md,
+        textAlign: "center",
+    },
+
+    questionCountContainer: {
+        flexDirection: "row",
+        gap: spacing.sm,
+        marginBottom: spacing.lg,
+        justifyContent: "center",
+        flexWrap: "wrap",
+    },
+
+    countButton: {
+        minWidth: 60,
+        paddingVertical: spacing.sm,
+        paddingHorizontal: spacing.md,
+        borderRadius: 12,
+        backgroundColor: colors.card,
+        borderWidth: 2,
+        borderColor: colors.accent,
+        alignItems: "center",
+    },
+
+    countButtonSelected: {
+        backgroundColor: colors.danger,
+        borderColor: colors.danger,
+    },
+
+    countButtonText: {
+        fontSize: 16,
+        fontWeight: "600",
+        color: colors.textPrimary,
+    },
+
+    countButtonTextSelected: {
+        color: colors.buttonText,
     },
 });

@@ -10,11 +10,12 @@ import { colors } from "../styles/colors";
 interface Props {
     drugs: Drug[];
     start: boolean;
+    questionCount?: number;
 }
 
-export default function QuizCard({ drugs, start }: Props) {
+export default function QuizCard({ drugs, start, questionCount = 10 }: Props) {
     const router = useRouter();
-    const quiz = useQuiz(drugs);
+    const quiz = useQuiz(drugs, questionCount);
     const [selected, setSelected] = useState<string | null>(null);
     const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -46,6 +47,13 @@ export default function QuizCard({ drugs, start }: Props) {
             </Pressable>
 
             <View style={styles.card}>
+
+                {/* Question Counter */}
+                <View style={styles.questionCounter}>
+                    <Text style={styles.questionCounterText}>
+                        Question {quiz.currentIndex + 1} / {quiz.total}
+                    </Text>
+                </View>
 
                 {/* 🔵 DRUG NAME — now FIRST and larger */}
                 <Text style={styles.drugName}>
@@ -270,6 +278,24 @@ const styles = StyleSheet.create({
         textAlign: "center",
         color: "#A8B3BD",
         marginBottom: spacing.lg,
+    },
+
+    /* Question Counter */
+    questionCounter: {
+        alignSelf: "center",
+        backgroundColor: "#DC354544",
+        paddingVertical: spacing.xs,
+        paddingHorizontal: spacing.md,
+        borderRadius: 20,
+        marginBottom: spacing.md,
+        borderWidth: 1,
+        borderColor: colors.danger,
+    },
+    questionCounterText: {
+        color: colors.danger,
+        fontSize: 14,
+        fontWeight: "700",
+        letterSpacing: 0.5,
     },
 
 });

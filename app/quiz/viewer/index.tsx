@@ -13,8 +13,12 @@ export default function QuizViewer() {
 
     const dataString = params.data as string | undefined;
     const startString = params.start as string | undefined;
+    const questionCountString = params.questionCount as string | undefined;
 
     const start = startString === "true";
+    const questionCount = questionCountString 
+        ? parseInt(questionCountString, 10) || 10 
+        : 10;
 
     const drugs = useMemo(() => {
         try {
@@ -70,7 +74,7 @@ export default function QuizViewer() {
                 </View>
 
                 {/* Quiz Engine */}
-                <QuizCard drugs={finalDrugs} start={start} />
+                <QuizCard drugs={finalDrugs} start={start} questionCount={questionCount} />
             </View>
         </View>
     );
