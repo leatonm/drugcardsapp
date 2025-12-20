@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef } from "react";
-import { View, Text, StyleSheet, Pressable, Animated } from "react-native";
 import { useRouter } from "expo-router";
-import { useQuiz } from "../hooks/useQuiz";
+import React, { useEffect, useRef, useState } from "react";
+import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import type { Drug } from "../hooks/getDrugs";
+import { useQuiz } from "../hooks/useQuiz";
+import { colors } from "../styles/colors";
 import { spacing } from "../styles/spacing";
 import { typography } from "../styles/typography";
-import { colors } from "../styles/colors";
 
 interface Props {
     drugs: Drug[];
