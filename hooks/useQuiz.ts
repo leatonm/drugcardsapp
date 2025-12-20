@@ -1,5 +1,5 @@
 // hooks/useQuiz.ts
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { Drug } from "./getDrugs";
 
 // ---------------------
@@ -12,8 +12,22 @@ type Question = {
     choices: string[];
 };
 
+// Fisher-Yates shuffle algorithm for proper randomization
+function shuffleArray<T>(array: T[]): T[] {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+}
 
-function generateQuestion(drug: Drug, allDrugs: Drug[]): Question {
+function generateQuestion(drug: Drug, allDrugs: Drug[]): Question | null {
+    // Validate required fields
+    if (!drug.class || !drug.mechanism || !drug.indications?.length || !drug.contraindications?.length) {
+        return null;
+    }
+
     const questionTypes: string[] = [];
 
     if (drug.adultDose) questionTypes.push("adult");
@@ -24,6 +38,10 @@ function generateQuestion(drug: Drug, allDrugs: Drug[]): Question {
     if (drug.interactions?.length) questionTypes.push("interaction");
     if (drug.education?.length) questionTypes.push("education");
 
+    if (questionTypes.length === 0) {
+        return null;
+    }
+
     const type = questionTypes[Math.floor(Math.random() * questionTypes.length)];
 
     let questionText = "";
@@ -31,13 +49,15 @@ function generateQuestion(drug: Drug, allDrugs: Drug[]): Question {
 
     switch (type) {
         case "adult":
+            if (!drug.adultDose) return null;
             questionText = "What is the adult dosage?";
-            correctAnswer = drug.adultDose!;
+            correctAnswer = drug.adultDose;
             break;
 
         case "pediatric":
+            if (!drug.pediatricDose) return null;
             questionText = "What is the pediatric dosage?";
-            correctAnswer = drug.pediatricDose!;
+            correctAnswer = drug.pediatricDose;
             break;
 
         case "class":
@@ -51,34 +71,45 @@ function generateQuestion(drug: Drug, allDrugs: Drug[]): Question {
             break;
 
         case "indication":
+            if (!drug.indications.length) return null;
             questionText = "Which of these is an indication?";
             correctAnswer =
                 drug.indications[Math.floor(Math.random() * drug.indications.length)];
             break;
 
         case "contra":
+            if (!drug.contraindications.length) return null;
             questionText = "Which of these is a contraindication?";
             correctAnswer =
                 drug.contraindications[Math.floor(Math.random() * drug.contraindications.length)];
             break;
 
         case "interaction":
+            if (!drug.interactions?.length) return null;
             questionText = "Which of these is a drug interaction?";
             correctAnswer =
-                drug.interactions![Math.floor(Math.random() * drug.interactions!.length)];
+                drug.interactions[Math.floor(Math.random() * drug.interactions.length)];
             break;
 
         case "education":
+            if (!drug.education?.length) return null;
             questionText = "Which is appropriate patient education?";
             correctAnswer =
-                drug.education![Math.floor(Math.random() * drug.education!.length)];
+                drug.education[Math.floor(Math.random() * drug.education.length)];
             break;
     }
 
-    //Guaranteed unique answers
-    const wrongAnswers = new Set<string>();
+    if (!questionText || !correctAnswer) {
+        return null;
+    }
 
-    while (wrongAnswers.size < 2) {
+    // Generate wrong answers with safety limit to prevent infinite loop
+    const wrongAnswers = new Set<string>();
+    const maxAttempts = 200;
+    let attempts = 0;
+
+    while (wrongAnswers.size < 2 && attempts < maxAttempts) {
+        attempts++;
         const rand = allDrugs[Math.floor(Math.random() * allDrugs.length)];
         let wrong = "";
 
@@ -90,22 +121,34 @@ function generateQuestion(drug: Drug, allDrugs: Drug[]): Question {
                 wrong = rand.pediatricDose ?? "";
                 break;
             case "class":
-                wrong = rand.class;
+                wrong = rand.class ?? "";
                 break;
             case "mechanism":
-                wrong = rand.mechanism;
+                wrong = rand.mechanism ?? "";
                 break;
             case "indication":
-                wrong = rand.indications?.[0] ?? "";
+                if (rand.indications?.length) {
+                    const randomIndex = Math.floor(Math.random() * rand.indications.length);
+                    wrong = rand.indications[randomIndex];
+                }
                 break;
             case "contra":
-                wrong = rand.contraindications?.[0] ?? "";
+                if (rand.contraindications?.length) {
+                    const randomIndex = Math.floor(Math.random() * rand.contraindications.length);
+                    wrong = rand.contraindications[randomIndex];
+                }
                 break;
             case "interaction":
-                wrong = rand.interactions?.[0] ?? "";
+                if (rand.interactions?.length) {
+                    const randomIndex = Math.floor(Math.random() * rand.interactions.length);
+                    wrong = rand.interactions[randomIndex];
+                }
                 break;
             case "education":
-                wrong = rand.education?.[0] ?? "";
+                if (rand.education?.length) {
+                    const randomIndex = Math.floor(Math.random() * rand.education.length);
+                    wrong = rand.education[randomIndex];
+                }
                 break;
         }
 
@@ -114,9 +157,12 @@ function generateQuestion(drug: Drug, allDrugs: Drug[]): Question {
         }
     }
 
-    const choices = [...wrongAnswers, correctAnswer].sort(
-        () => Math.random() - 0.5
-    );
+    // If we couldn't get enough wrong answers, fill with placeholder
+    while (wrongAnswers.size < 2) {
+        wrongAnswers.add("N/A");
+    }
+
+    const choices = shuffleArray([...wrongAnswers, correctAnswer]);
 
     return {
         question: questionText,
@@ -133,18 +179,35 @@ export function useQuiz(drugs: Drug[]) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [score, setScore] = useState(0);
     const [finished, setFinished] = useState(false);
+    const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
 
     const questions = useMemo(() => {
-        return drugs.map((drug) => ({
-            drug,
-            ...generateQuestion(drug, drugs),
-        }));
+        if (!drugs || drugs.length === 0) {
+            return [];
+        }
+
+        return drugs
+            .map((drug) => {
+                const question = generateQuestion(drug, drugs);
+                if (!question) return null;
+                return {
+                    drug,
+                    ...question,
+                };
+            })
+            .filter((q): q is NonNullable<typeof q> => q !== null);
     }, [drugs]);
 
     const current = questions[currentIndex];
 
     function selectAnswer(answer: string) {
-        if (answer === current.correct) {
+        // Prevent multiple selections
+        if (selectedAnswer !== null) {
+            return;
+        }
+
+        setSelectedAnswer(answer);
+        if (answer === current?.correct) {
             setScore((s) => s + 1);
         }
     }
@@ -154,6 +217,7 @@ export function useQuiz(drugs: Drug[]) {
             setFinished(true);
         } else {
             setCurrentIndex((i) => i + 1);
+            setSelectedAnswer(null); // Reset selection for next question
         }
     }
 
@@ -168,5 +232,7 @@ export function useQuiz(drugs: Drug[]) {
         next,
         finished,
         score,
+        selectedAnswer,
+        hasAnswered: selectedAnswer !== null,
     };
 }
