@@ -115,7 +115,7 @@ export default function QuizReview() {
             <View style={styles.footer}>
                 <Pressable
                     style={styles.backButton}
-                    onPress={() => router.back()}
+                    onPress={() => router.replace("/quiz")}
                 >
                     <Text style={styles.backButtonText}>Back</Text>
                 </Pressable>

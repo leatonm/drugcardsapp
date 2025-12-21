@@ -2,7 +2,6 @@ import { useState } from "react";
 import { View, Text, Pressable, StyleSheet, ScrollView } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import FlashCard from "../../../components/FlashCard";
-import AppHeader from "../../../components/AppHeader";
 import { colors } from "../../../styles/colors";
 import { spacing } from "../../../styles/spacing";
 
@@ -23,8 +22,6 @@ export default function FlashcardViewer() {
                 contentContainerStyle={styles.scrollContent}
                 showsVerticalScrollIndicator={false}
             >
-                <AppHeader />
-
                 {/* 🔽 GROUPED HEADER + CARD */}
                 <View style={styles.studyBlock}>
                     <View style={styles.modeBanner}>
@@ -87,7 +84,7 @@ const styles = StyleSheet.create({
 
     scrollContent: {
         paddingHorizontal: spacing.lg,
-        paddingTop: spacing.xl,
+        paddingTop: spacing.md,
         paddingBottom: spacing.xl,
         flexGrow: 1,
         maxWidth: 480,
@@ -99,7 +96,7 @@ const styles = StyleSheet.create({
     studyBlock: {
         width: "100%",
         alignItems: "stretch",
-        marginTop: spacing.lg,
+        marginTop: spacing.md,
         marginBottom: spacing.md,
     },
 

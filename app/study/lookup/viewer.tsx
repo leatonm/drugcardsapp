@@ -20,7 +20,7 @@ export default function LookupViewer() {
 
       <Pressable
         style={styles.back}
-        onPress={() => router.back()}
+        onPress={() => router.replace("/study/lookup")}
       >
         <Text style={styles.backText}>Back to List</Text>
       </Pressable>

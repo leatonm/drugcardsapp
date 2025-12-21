@@ -1,11 +1,10 @@
 // app/quiz/viewer/index.tsx
 import React, { useMemo } from "react";
-import { View, StyleSheet, Text, Pressable } from "react-native";
+import { View, StyleSheet, Text, Pressable, ScrollView } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import QuizCard from "../../../components/QuizCard";
 import { colors } from "../../../styles/colors";
 import { spacing } from "../../../styles/spacing";
-import AppHeader from "../../../components/AppHeader";
 
 export default function QuizViewer() {
     const router = useRouter();
@@ -44,9 +43,11 @@ export default function QuizViewer() {
     if (!drugs.length) {
         return (
             <View style={styles.container}>
-                <View style={styles.contentWrapper}>
-                    <AppHeader />
-
+                <ScrollView 
+                    style={styles.scrollView}
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
+                >
                     <Text style={styles.error}>No drug data provided.</Text>
 
                     <Pressable
@@ -57,17 +58,18 @@ export default function QuizViewer() {
                             Back to Quiz Menu
                         </Text>
                     </Pressable>
-                </View>
+                </ScrollView>
             </View>
         );
     }
 
     return (
         <View style={styles.container}>
-            {/* 🔽 CENTERED CONTENT */}
-            <View style={styles.contentWrapper}>
-                <AppHeader />
-
+            <ScrollView 
+                style={styles.scrollView}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+            >
                 {/* 🟥 QUIZ MODE BANNER */}
                 <View style={styles.modeBanner}>
                     <Text style={styles.modeBannerText}>QUIZ MODE</Text>
@@ -77,7 +79,7 @@ export default function QuizViewer() {
                 <View style={styles.quizCardWrapper}>
                     <QuizCard drugs={finalDrugs} start={start} questionCount={questionCount} />
                 </View>
-            </View>
+            </ScrollView>
         </View>
     );
 }
@@ -86,19 +88,21 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: colors.background,
-        paddingHorizontal: spacing.lg,
     },
 
-    /* 🔑 Same centering system as Home / Study / Quiz */
-    contentWrapper: {
+    scrollView: {
         flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        paddingTop: spacing.lg,
+    },
+
+    scrollContent: {
+        paddingHorizontal: spacing.lg,
+        paddingTop: spacing.md,
         paddingBottom: spacing.lg,
+        flexGrow: 1,
         maxWidth: 480,
         alignSelf: "center",
         width: "100%",
+        alignItems: "center",
     },
 
     /* 🟥 QUIZ MODE BANNER */

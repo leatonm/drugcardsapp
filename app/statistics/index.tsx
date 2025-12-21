@@ -144,7 +144,7 @@ export default function StatisticsScreen() {
                 {/* Back Button */}
                 <Pressable
                     style={styles.backButton}
-                    onPress={() => router.back()}
+                    onPress={() => router.replace("/home")}
                 >
                     <Text style={styles.backButtonText}>Back</Text>
                 </Pressable>

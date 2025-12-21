@@ -55,7 +55,7 @@ export default function QuizCard({ drugs, start, questionCount = 10 }: Props) {
         <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
 
             {/* EXIT BUTTON (Quiz red) */}
-            <Pressable style={styles.exitButton} onPress={() => router.back()}>
+            <Pressable style={styles.exitButton} onPress={() => router.replace("/quiz")}>
                 <Text style={styles.exitText}>✕</Text>
             </Pressable>
 
@@ -150,7 +150,7 @@ export default function QuizCard({ drugs, start, questionCount = 10 }: Props) {
 
                             <Pressable
                                 style={[styles.doneButton, styles.finishButton]}
-                                onPress={() => router.back()}
+                                onPress={() => router.replace("/quiz")}
                             >
                                 <Text style={styles.doneText}>Done</Text>
                             </Pressable>
