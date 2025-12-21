@@ -99,6 +99,8 @@ const styles = StyleSheet.create({
         paddingTop: spacing.md,
         paddingBottom: spacing.lg,
         flexGrow: 1,
+        minHeight: "100%",
+        justifyContent: "center",
         maxWidth: 480,
         alignSelf: "center",
         width: "100%",

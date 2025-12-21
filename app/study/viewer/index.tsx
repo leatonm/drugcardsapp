@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { View, Text, Pressable, StyleSheet, ScrollView } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useState } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import FlashCard from "../../../components/FlashCard";
 import { colors } from "../../../styles/colors";
 import { spacing } from "../../../styles/spacing";
@@ -91,13 +91,15 @@ const styles = StyleSheet.create({
         alignSelf: "center",
         width: "100%",
         alignItems: "center",
+        minHeight: "100%",
+        justifyContent: "center",
     },
 
     studyBlock: {
         width: "100%",
         alignItems: "stretch",
-        marginTop: spacing.md,
-        marginBottom: spacing.md,
+        marginTop: spacing.sm,
+        marginBottom: spacing.sm,
     },
 
     /* 🔵 STUDY MODE BANNER */
@@ -134,7 +136,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         gap: spacing.lg,
-        marginTop: spacing.md,
+        marginTop: spacing.sm,
         marginBottom: spacing.sm,
         width: "100%",
     },

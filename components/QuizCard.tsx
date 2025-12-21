@@ -60,54 +60,55 @@ export default function QuizCard({ drugs, start, questionCount = 10 }: Props) {
             </Pressable>
 
             <View style={styles.card}>
+                <View style={styles.cardContent}>
+                    {/* Question Counter */}
+                    <View style={styles.questionCounter}>
+                        <Text style={styles.questionCounterText}>
+                            Question {quiz.currentIndex + 1} / {quiz.total}
+                        </Text>
+                    </View>
 
-                {/* Question Counter */}
-                <View style={styles.questionCounter}>
-                    <Text style={styles.questionCounterText}>
-                        Question {quiz.currentIndex + 1} / {quiz.total}
+                    {/* 🔵 DRUG NAME — now FIRST and larger */}
+                    <Text style={styles.drugName}>
+                        {quiz.currentDrug?.name.generic ?? "N/A"}
                     </Text>
-                </View>
 
-                {/* 🔵 DRUG NAME — now FIRST and larger */}
-                <Text style={styles.drugName}>
-                    {quiz.currentDrug?.name.generic ?? "N/A"}
-                </Text>
+                    {/* Optional brand name */}
+                    {quiz.currentDrug?.name.brand?.length > 0 && (
+                        <Text style={styles.brandName}>
+                            {quiz.currentDrug.name.brand.join(", ")}
+                        </Text>
+                    )}
 
-                {/* Optional brand name */}
-                {quiz.currentDrug?.name.brand?.length > 0 && (
-                    <Text style={styles.brandName}>
-                        {quiz.currentDrug.name.brand.join(", ")}
-                    </Text>
-                )}
+                    {/* Question under drug name */}
+                    <Text style={styles.title}>{quiz.question}</Text>
 
-                {/* Question under drug name */}
-                <Text style={styles.title}>{quiz.question}</Text>
+                    <View style={styles.choicesBox}>
+                        {quiz.choices.map((choice, index) => {
+                            const isCorrect = answered && choice === quiz.correctAnswer;
+                            const isWrong =
+                                answered && selected === choice && choice !== quiz.correctAnswer;
 
-                <View style={styles.choicesBox}>
-                    {quiz.choices.map((choice, index) => {
-                        const isCorrect = answered && choice === quiz.correctAnswer;
-                        const isWrong =
-                            answered && selected === choice && choice !== quiz.correctAnswer;
-
-                        return (
-                            <Pressable
-                                key={index}
-                                onPress={() => {
-                                    if (!answered) {
-                                        setSelected(choice);
-                                        quiz.selectAnswer(choice);
-                                    }
-                                }}
-                                style={[
-                                    styles.choiceButton,
-                                    isCorrect && styles.correct,
-                                    isWrong && styles.wrong,
-                                ]}
-                            >
-                                <Text style={styles.choiceText}>{choice}</Text>
-                            </Pressable>
-                        );
-                    })}
+                            return (
+                                <Pressable
+                                    key={index}
+                                    onPress={() => {
+                                        if (!answered) {
+                                            setSelected(choice);
+                                            quiz.selectAnswer(choice);
+                                        }
+                                    }}
+                                    style={[
+                                        styles.choiceButton,
+                                        isCorrect && styles.correct,
+                                        isWrong && styles.wrong,
+                                    ]}
+                                >
+                                    <Text style={styles.choiceText}>{choice}</Text>
+                                </Pressable>
+                            );
+                        })}
+                    </View>
                 </View>
 
                 {/* NEXT QUESTION BUTTON */}
@@ -208,6 +209,13 @@ const styles = StyleSheet.create({
         elevation: 8,
         borderWidth: 1,
         borderColor: "rgba(220, 53, 69, 0.2)", // subtle red border to match quiz theme
+        justifyContent: "space-between",
+        minHeight: 400,
+    },
+
+    cardContent: {
+        flex: 1,
+        justifyContent: "center",
     },
 
     title: {

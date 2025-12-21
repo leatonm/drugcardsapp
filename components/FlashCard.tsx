@@ -124,42 +124,42 @@ export default function FlashCard({ drug, resetFlip = false }: FlashCardProps) {
                                     </Text>
                                 </View>
 
-                                {/* 🚑 PREHOSPITAL / FIELD DRUGS */}
-                                {!isRnStyleDrug(drug) && (
-                                    <>
-                                        {/* Adult and Pediatric Dose Side by Side */}
-                                        {(drug.adultDose || drug.pediatricDose) && (
-                                            <View style={styles.dosageRow}>
-                                                {drug.adultDose && (
-                                                    <View style={[styles.section, styles.dosageSection]}>
-                                                        <Text style={styles.sectionTitle}>Adult Dose</Text>
-                                                        <Text style={styles.sectionContent}>
-                                                            {drug.adultDose}
-                                                        </Text>
-                                                    </View>
-                                                )}
+                            {/* 🚑 PREHOSPITAL / FIELD DRUGS */}
+                            {!isRnStyleDrug(drug) && (
+                                <>
+                                    {/* Adult Dose, Pediatric Dose, and Routes in one row */}
+                                    {(drug.adultDose || drug.pediatricDose || drug.routes?.length > 0) && (
+                                        <View style={styles.dosageRow}>
+                                            {drug.adultDose && (
+                                                <View style={[styles.section, styles.dosageSection]}>
+                                                    <Text style={styles.sectionTitle}>Adult Dose</Text>
+                                                    <Text style={styles.sectionContent}>
+                                                        {drug.adultDose}
+                                                    </Text>
+                                                </View>
+                                            )}
 
-                                                {drug.pediatricDose && (
-                                                    <View style={[styles.section, styles.dosageSection]}>
-                                                        <Text style={styles.sectionTitle}>Pediatric Dose</Text>
-                                                        <Text style={styles.sectionContent}>
-                                                            {drug.pediatricDose}
-                                                        </Text>
-                                                    </View>
-                                                )}
-                                            </View>
-                                        )}
+                                            {drug.pediatricDose && (
+                                                <View style={[styles.section, styles.dosageSection]}>
+                                                    <Text style={styles.sectionTitle}>Pediatric Dose</Text>
+                                                    <Text style={styles.sectionContent}>
+                                                        {drug.pediatricDose}
+                                                    </Text>
+                                                </View>
+                                            )}
 
-                                        {drug.routes?.length > 0 && (
-                                            <View style={styles.section}>
-                                                <Text style={styles.sectionTitle}>Routes</Text>
-                                                <Text style={styles.sectionContent}>
-                                                    {safe(drug.routes)}
-                                                </Text>
-                                            </View>
-                                        )}
-                                    </>
-                                )}
+                                            {drug.routes?.length > 0 && (
+                                                <View style={[styles.section, styles.dosageSection]}>
+                                                    <Text style={styles.sectionTitle}>Routes</Text>
+                                                    <Text style={styles.sectionContent}>
+                                                        {safe(drug.routes)}
+                                                    </Text>
+                                                </View>
+                                            )}
+                                        </View>
+                                    )}
+                                </>
+                            )}
 
                                 {/* 🏥 RN / IN-HOSPITAL DRUGS */}
                                 {isRnStyleDrug(drug) && (
@@ -201,9 +201,9 @@ const styles = StyleSheet.create({
         width: "100%",
         maxWidth: 480,
         minWidth: 320,
-        height: 480,
+        height: 400,
         alignSelf: "center",
-        marginBottom: spacing.lg,
+        marginBottom: spacing.md,
         perspective: 1200,
     },
 
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
         width: "100%",
         flex: 1,
         borderRadius: 24,
-        padding: spacing.md,
+        padding: spacing.sm,
         backgroundColor: cardColors.card,
         shadowColor: "#000",
         shadowOpacity: 0.3,
@@ -286,20 +286,23 @@ const styles = StyleSheet.create({
     sectionsContainer: {
         flex: 1,
         justifyContent: "space-evenly",
-        paddingVertical: spacing.xs,
+        paddingVertical: 0,
     },
 
     section: {
         backgroundColor: "rgba(61, 106, 159, 0.08)",
-        borderRadius: 12,
+        borderRadius: 10,
         padding: spacing.sm,
         borderLeftWidth: 3,
         borderLeftColor: cardColors.accent,
+        flexGrow: 1,
         flexShrink: 1,
+        minHeight: 0,
+        justifyContent: "center",
     },
 
     sectionTitle: {
-        fontSize: 13,
+        fontSize: 14,
         fontWeight: "700",
         color: cardColors.accent,
         letterSpacing: 0.3,
@@ -307,8 +310,8 @@ const styles = StyleSheet.create({
     },
 
     sectionContent: {
-        fontSize: 13,
-        lineHeight: 18,
+        fontSize: 14,
+        lineHeight: 20,
         color: cardColors.textPrimary,
     },
 
