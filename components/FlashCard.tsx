@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
         width: "100%",
         flex: 1,
         borderRadius: 24,
-        padding: spacing.sm,
+        padding: spacing.xs + 2,
         backgroundColor: cardColors.card,
         shadowColor: "#000",
         shadowOpacity: 0.3,
@@ -229,6 +229,7 @@ const styles = StyleSheet.create({
         elevation: 8,
         borderWidth: 1,
         borderColor: "rgba(61, 106, 159, 0.2)",
+        overflow: "hidden",
     },
 
     frontCenter: {
@@ -285,44 +286,47 @@ const styles = StyleSheet.create({
 
     sectionsContainer: {
         flex: 1,
-        justifyContent: "space-evenly",
-        paddingVertical: 0,
+        justifyContent: "flex-start",
+        paddingVertical: spacing.xs,
+        gap: spacing.xs,
     },
 
     section: {
         backgroundColor: "rgba(61, 106, 159, 0.08)",
-        borderRadius: 10,
-        padding: spacing.sm,
+        borderRadius: 8,
+        padding: spacing.xs + 2,
         borderLeftWidth: 3,
         borderLeftColor: cardColors.accent,
-        flexGrow: 1,
         flexShrink: 1,
         minHeight: 0,
-        justifyContent: "center",
+        marginBottom: spacing.xs,
     },
 
     sectionTitle: {
-        fontSize: 14,
+        fontSize: 13,
         fontWeight: "700",
         color: cardColors.accent,
         letterSpacing: 0.3,
         marginBottom: spacing.xs,
+        flexShrink: 0,
     },
 
     sectionContent: {
-        fontSize: 14,
-        lineHeight: 20,
+        fontSize: 12,
+        lineHeight: 18,
         color: cardColors.textPrimary,
+        flexShrink: 1,
+        flexWrap: "wrap",
     },
 
     dosageRow: {
         flexDirection: "row",
-        gap: spacing.sm,
-        marginVertical: spacing.xs,
+        gap: spacing.xs,
+        marginBottom: spacing.xs,
     },
 
     dosageSection: {
         flex: 1,
-        marginVertical: spacing.xs,
+        marginBottom: 0,
     },
 });

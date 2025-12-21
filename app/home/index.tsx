@@ -11,6 +11,7 @@ import {
     View
 } from "react-native";
 import AppHeader from "../../components/AppHeader";
+import UserProfileModal from "../../components/UserProfileModal";
 import { useAuth } from "../../hooks/useAuth";
 import { UserScope, useUserScope } from "../../hooks/useUserScope";
 import { colors } from "../../styles/colors";
@@ -21,10 +22,11 @@ const DISCLAIMER_KEY = "homeDisclaimerAccepted";
 
 export default function HomeScreen() {
     const { scope, updateScope } = useUserScope();
-    const { user, logout } = useAuth();
+    const { user } = useAuth();
 
     const [scopeModalVisible, setScopeModalVisible] = useState(false);
     const [disclaimerVisible, setDisclaimerVisible] = useState(false);
+    const [profileModalVisible, setProfileModalVisible] = useState(false);
 
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const scaleAnim = useRef(new Animated.Value(0.85)).current;
@@ -69,8 +71,17 @@ export default function HomeScreen() {
             <View style={styles.contentWrapper}>
                 <AppHeader />
 
-                {/* User Status Card */}
-                <View style={styles.userCard}>
+                {/* User Status Card - Clickable to open profile */}
+                <Pressable
+                    style={styles.userCard}
+                    onPress={() => {
+                        if (user.isLoggedIn) {
+                            setProfileModalVisible(true);
+                        } else {
+                            router.push("/login");
+                        }
+                    }}
+                >
                     <View style={styles.userInfo}>
                         <Text style={styles.userGreeting}>
                             {user.isLoggedIn ? `Welcome back!` : `Welcome!`}
@@ -81,21 +92,12 @@ export default function HomeScreen() {
                             </Text>
                         </View>
                     </View>
-                    <Pressable
-                        style={styles.loginButton}
-                        onPress={() => {
-                            if (user.isLoggedIn) {
-                                logout();
-                            } else {
-                                router.push("/login");
-                            }
-                        }}
-                    >
+                    <View style={styles.loginButton}>
                         <Text style={styles.loginButtonText}>
-                            {user.isLoggedIn ? "Logout" : "Login"}
+                            {user.isLoggedIn ? "View Profile" : "Login"}
                         </Text>
-                    </Pressable>
-                </View>
+                    </View>
+                </Pressable>
 
                 {/* Main Action Buttons */}
                 <View style={styles.actionButtons}>
@@ -225,6 +227,12 @@ export default function HomeScreen() {
                     </View>
                 </View>
             </Modal>
+
+            {/* USER PROFILE MODAL */}
+            <UserProfileModal
+                visible={profileModalVisible}
+                onClose={() => setProfileModalVisible(false)}
+            />
         </View>
     );
 }
