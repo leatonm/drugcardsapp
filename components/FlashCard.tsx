@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { View, Text, StyleSheet, Pressable, ScrollView } from "react-native";
+import { View, Text, StyleSheet, Pressable } from "react-native";
 import Animated, {
     useSharedValue,
     useAnimatedStyle,
@@ -98,115 +98,93 @@ export default function FlashCard({ drug, resetFlip = false }: FlashCardProps) {
                 {/* ---------- BACK ---------- */}
                 <Animated.View style={[styles.absoluteCard, backStyle]}>
                     <View style={styles.card}>
-                        <ScrollView 
-                            style={styles.scrollView}
-                            contentContainerStyle={styles.scrollContent}
-                            showsVerticalScrollIndicator={false}
-                        >
-                            {/* Mechanism Section */}
-                            <View style={styles.section}>
-                                <View style={styles.sectionHeader}>
-                                    <Text style={styles.sectionIcon}>⚙️</Text>
+                        <View style={styles.backContent}>
+                            <View style={styles.sectionsContainer}>
+                                {/* Mechanism Section */}
+                                <View style={styles.section}>
                                     <Text style={styles.sectionTitle}>Mechanism</Text>
+                                    <Text style={styles.sectionContent}>
+                                        {safe(drug.mechanism)}
+                                    </Text>
                                 </View>
-                                <Text style={styles.sectionContent}>
-                                    {safe(drug.mechanism)}
-                                </Text>
-                            </View>
 
-                            {/* Indications Section */}
-                            <View style={styles.section}>
-                                <View style={styles.sectionHeader}>
-                                    <Text style={styles.sectionIcon}>✅</Text>
+                                {/* Indications Section */}
+                                <View style={styles.section}>
                                     <Text style={styles.sectionTitle}>Indications</Text>
+                                    <Text style={styles.sectionContent}>
+                                        {safe(drug.indications)}
+                                    </Text>
                                 </View>
-                                <Text style={styles.sectionContent}>
-                                    {safe(drug.indications)}
-                                </Text>
-                            </View>
 
-                            {/* Contraindications Section */}
-                            <View style={styles.section}>
-                                <View style={styles.sectionHeader}>
-                                    <Text style={styles.sectionIcon}>⚠️</Text>
+                                {/* Contraindications Section */}
+                                <View style={styles.section}>
                                     <Text style={styles.sectionTitle}>Contraindications</Text>
+                                    <Text style={styles.sectionContent}>
+                                        {safe(drug.contraindications)}
+                                    </Text>
                                 </View>
-                                <Text style={styles.sectionContent}>
-                                    {safe(drug.contraindications)}
-                                </Text>
-                            </View>
 
-                            {/* 🚑 PREHOSPITAL / FIELD DRUGS */}
-                            {!isRnStyleDrug(drug) && (
-                                <>
-                                    {drug.adultDose && (
-                                        <View style={styles.section}>
-                                            <View style={styles.sectionHeader}>
-                                                <Text style={styles.sectionIcon}>👤</Text>
-                                                <Text style={styles.sectionTitle}>Adult Dose</Text>
+                                {/* 🚑 PREHOSPITAL / FIELD DRUGS */}
+                                {!isRnStyleDrug(drug) && (
+                                    <>
+                                        {/* Adult and Pediatric Dose Side by Side */}
+                                        {(drug.adultDose || drug.pediatricDose) && (
+                                            <View style={styles.dosageRow}>
+                                                {drug.adultDose && (
+                                                    <View style={[styles.section, styles.dosageSection]}>
+                                                        <Text style={styles.sectionTitle}>Adult Dose</Text>
+                                                        <Text style={styles.sectionContent}>
+                                                            {drug.adultDose}
+                                                        </Text>
+                                                    </View>
+                                                )}
+
+                                                {drug.pediatricDose && (
+                                                    <View style={[styles.section, styles.dosageSection]}>
+                                                        <Text style={styles.sectionTitle}>Pediatric Dose</Text>
+                                                        <Text style={styles.sectionContent}>
+                                                            {drug.pediatricDose}
+                                                        </Text>
+                                                    </View>
+                                                )}
                                             </View>
-                                            <Text style={styles.sectionContent}>
-                                                {drug.adultDose}
-                                            </Text>
-                                        </View>
-                                    )}
+                                        )}
 
-                                    {drug.pediatricDose && (
-                                        <View style={styles.section}>
-                                            <View style={styles.sectionHeader}>
-                                                <Text style={styles.sectionIcon}>👶</Text>
-                                                <Text style={styles.sectionTitle}>Pediatric Dose</Text>
-                                            </View>
-                                            <Text style={styles.sectionContent}>
-                                                {drug.pediatricDose}
-                                            </Text>
-                                        </View>
-                                    )}
-
-                                    {drug.routes?.length > 0 && (
-                                        <View style={styles.section}>
-                                            <View style={styles.sectionHeader}>
-                                                <Text style={styles.sectionIcon}>➡️</Text>
+                                        {drug.routes?.length > 0 && (
+                                            <View style={styles.section}>
                                                 <Text style={styles.sectionTitle}>Routes</Text>
+                                                <Text style={styles.sectionContent}>
+                                                    {safe(drug.routes)}
+                                                </Text>
                                             </View>
-                                            <Text style={styles.sectionContent}>
-                                                {safe(drug.routes)}
-                                            </Text>
-                                        </View>
-                                    )}
-                                </>
-                            )}
+                                        )}
+                                    </>
+                                )}
 
-                            {/* 🏥 RN / IN-HOSPITAL DRUGS */}
-                            {isRnStyleDrug(drug) && (
-                                <>
-                                    {drug.interactions?.length > 0 && (
-                                        <View style={styles.section}>
-                                            <View style={styles.sectionHeader}>
-                                                <Text style={styles.sectionIcon}>🔗</Text>
+                                {/* 🏥 RN / IN-HOSPITAL DRUGS */}
+                                {isRnStyleDrug(drug) && (
+                                    <>
+                                        {drug.interactions?.length > 0 && (
+                                            <View style={styles.section}>
                                                 <Text style={styles.sectionTitle}>Interactions</Text>
+                                                <Text style={styles.sectionContent}>
+                                                    {safe(drug.interactions)}
+                                                </Text>
                                             </View>
-                                            <Text style={styles.sectionContent}>
-                                                {safe(drug.interactions)}
-                                            </Text>
-                                        </View>
-                                    )}
+                                        )}
 
-                                    {drug.education?.length > 0 && (
-                                        <View style={styles.section}>
-                                            <View style={styles.sectionHeader}>
-                                                <Text style={styles.sectionIcon}>📚</Text>
+                                        {drug.education?.length > 0 && (
+                                            <View style={styles.section}>
                                                 <Text style={styles.sectionTitle}>Patient Education</Text>
+                                                <Text style={styles.sectionContent}>
+                                                    {safe(drug.education)}
+                                                </Text>
                                             </View>
-                                            <Text style={styles.sectionContent}>
-                                                {safe(drug.education)}
-                                            </Text>
-                                        </View>
-                                    )}
-                                </>
-                            )}
-
-                        </ScrollView>
+                                        )}
+                                    </>
+                                )}
+                            </View>
+                        </View>
                     </View>
                 </Animated.View>
 
@@ -223,7 +201,7 @@ const styles = StyleSheet.create({
         width: "100%",
         maxWidth: 480,
         minWidth: 320,
-        height: 400,
+        height: 480,
         alignSelf: "center",
         marginBottom: spacing.lg,
         perspective: 1200,
@@ -242,7 +220,7 @@ const styles = StyleSheet.create({
         width: "100%",
         flex: 1,
         borderRadius: 24,
-        padding: spacing.lg,
+        padding: spacing.md,
         backgroundColor: cardColors.card,
         shadowColor: "#000",
         shadowOpacity: 0.3,
@@ -300,46 +278,48 @@ const styles = StyleSheet.create({
         letterSpacing: 0.3,
     },
 
-    scrollView: {
+    backContent: {
         flex: 1,
+        justifyContent: "center",
     },
 
-    scrollContent: {
-        paddingBottom: spacing.xl,
-        paddingTop: spacing.xs,
+    sectionsContainer: {
+        flex: 1,
+        justifyContent: "space-evenly",
+        paddingVertical: spacing.xs,
     },
 
     section: {
         backgroundColor: "rgba(61, 106, 159, 0.08)",
-        borderRadius: 16,
-        padding: spacing.lg,
-        marginBottom: spacing.lg,
+        borderRadius: 12,
+        padding: spacing.sm,
         borderLeftWidth: 3,
         borderLeftColor: cardColors.accent,
-    },
-
-    sectionHeader: {
-        flexDirection: "row",
-        alignItems: "center",
-        marginBottom: spacing.md,
-    },
-
-    sectionIcon: {
-        fontSize: 18,
-        marginRight: spacing.xs,
+        flexShrink: 1,
     },
 
     sectionTitle: {
-        fontSize: 16,
+        fontSize: 13,
         fontWeight: "700",
         color: cardColors.accent,
-        letterSpacing: 0.5,
+        letterSpacing: 0.3,
+        marginBottom: spacing.xs,
     },
 
     sectionContent: {
-        fontSize: 16,
-        lineHeight: 24,
+        fontSize: 13,
+        lineHeight: 18,
         color: cardColors.textPrimary,
-        paddingLeft: spacing.xs,
+    },
+
+    dosageRow: {
+        flexDirection: "row",
+        gap: spacing.sm,
+        marginVertical: spacing.xs,
+    },
+
+    dosageSection: {
+        flex: 1,
+        marginVertical: spacing.xs,
     },
 });
