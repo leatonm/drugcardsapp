@@ -25,15 +25,17 @@ export default function QuizCard({ drugs, start, questionCount = 10 }: Props) {
         fadeAnim.setValue(0);
     }, [start]);
 
-    // Fade animation for each question
+    // Reset selection and fade animation when question changes
     useEffect(() => {
         if (!start) return;
+        setSelected(null);
+        fadeAnim.setValue(0);
         Animated.timing(fadeAnim, {
             toValue: 1,
             duration: 300,
             useNativeDriver: true,
         }).start();
-    }, [quiz.question, start]);
+    }, [quiz.question, start, fadeAnim]);
 
     if (!start || !quiz || !quiz.question) return null;
     const answered = selected !== null;

@@ -1,13 +1,14 @@
 // src/styles/colors.ts
 export const colors = {
-    // Main theme
-    card: "#0D1B2A",          // Deep navy
-    primary: "#0D1B2A",       // App primary = card tone for consistency
-    accent: "#000000ff",        // Teal accent
+    // Main theme - Red and Navy Blue (matching logo)
+    card: "#0D1B2A",          // Deep navy blue
+    primary: "#0D1B2A",       // App primary = navy blue
+    accent: "#DC3545",       // Red accent (matching logo theme)
 
     // Text
     textPrimary: "#E0E5EB",   // Soft off-white (great on dark cards)
     textSecondary: "#6d7985ff", // Muted gray-blue
+    textMuted: "#A8B3BD",     // Muted text color
 
     // Backgrounds
     background: "#F5F7FA",    // Soft light gray for screens
@@ -21,7 +22,7 @@ export const colors = {
 
     // Status colors
     success: "#28A745",
-    danger: "#DC3545",
+    danger: "#DC3545",       // Red (matching logo)
 };
 
 

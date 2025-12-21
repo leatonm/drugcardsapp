@@ -29,9 +29,12 @@ export type Drug = {
 export function useDrugs(scope: UserScope) {
     const [allDrugs, setAllDrugs] = useState<Drug[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<Error | null>(null);
 
     useEffect(() => {
         async function loadData() {
+            setError(null);
+            setLoading(true);
             try {
                 const urls = [
                     "https://raw.githubusercontent.com/leatonm/drug-cards-data/main/emt.json",
@@ -53,8 +56,10 @@ export function useDrugs(scope: UserScope) {
 
                 const combined: Drug[] = responses.flat();
                 setAllDrugs(combined);
-            } catch (error) {
+            } catch (err) {
+                const error = err instanceof Error ? err : new Error("Failed to load drug data");
                 console.error("Failed to load drug data:", error);
+                setError(error);
             } finally {
                 setLoading(false);
             }
@@ -63,8 +68,11 @@ export function useDrugs(scope: UserScope) {
         loadData();
     }, []);
 
-    // 🔎 STRICT scope filtering (no ALL anymore)
+    // Filter by scope - handle "ALL" case explicitly
     const drugs = useMemo(() => {
+        if (scope === "ALL") {
+            return allDrugs;
+        }
         return allDrugs.filter(
             drug =>
                 Array.isArray(drug.scope) &&
@@ -72,5 +80,5 @@ export function useDrugs(scope: UserScope) {
         );
     }, [allDrugs, scope]);
 
-    return { drugs, loading };
+    return { drugs, loading, error };
 }

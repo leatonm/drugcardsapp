@@ -1,5 +1,5 @@
 // hooks/useQuiz.ts
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Drug } from "./getDrugs";
 
 // ---------------------
@@ -11,6 +11,16 @@ type Question = {
     correct: string;
     choices: string[];
 };
+
+type QuestionType = 
+    | "adult" 
+    | "pediatric" 
+    | "class" 
+    | "indication" 
+    | "contra" 
+    | "mechanism" 
+    | "interaction" 
+    | "education";
 
 // Fisher-Yates shuffle algorithm for proper randomization
 function shuffleArray<T>(array: T[]): T[] {
@@ -28,7 +38,7 @@ function generateQuestion(drug: Drug, allDrugs: Drug[]): Question | null {
         return null;
     }
 
-    const questionTypes: string[] = [];
+    const questionTypes: QuestionType[] = [];
 
     if (drug.adultDose) questionTypes.push("adult");
     if (drug.pediatricDose) questionTypes.push("pediatric");
@@ -42,7 +52,7 @@ function generateQuestion(drug: Drug, allDrugs: Drug[]): Question | null {
         return null;
     }
 
-    const type = questionTypes[Math.floor(Math.random() * questionTypes.length)];
+    const type: QuestionType = questionTypes[Math.floor(Math.random() * questionTypes.length)];
 
     let questionText = "";
     let correctAnswer = "";
@@ -103,16 +113,14 @@ function generateQuestion(drug: Drug, allDrugs: Drug[]): Question | null {
         return null;
     }
 
-    // Generate wrong answers with safety limit to prevent infinite loop
-    const wrongAnswers = new Set<string>();
-    const maxAttempts = 200;
-    let attempts = 0;
-
-    while (wrongAnswers.size < 2 && attempts < maxAttempts) {
-        attempts++;
-        const rand = allDrugs[Math.floor(Math.random() * allDrugs.length)];
+    // Generate wrong answers - optimized approach
+    // First, collect all possible wrong answers from other drugs
+    const possibleWrongAnswers = new Set<string>();
+    
+    for (const rand of allDrugs) {
+        if (rand.id === drug.id) continue; // Skip the current drug
+        
         let wrong = "";
-
         switch (type) {
             case "adult":
                 wrong = rand.adultDose ?? "";
@@ -153,9 +161,14 @@ function generateQuestion(drug: Drug, allDrugs: Drug[]): Question | null {
         }
 
         if (wrong && wrong !== correctAnswer) {
-            wrongAnswers.add(wrong);
+            possibleWrongAnswers.add(wrong);
         }
     }
+
+    // Convert to array and shuffle, then take 2 random ones
+    const wrongAnswersArray = Array.from(possibleWrongAnswers);
+    const shuffledWrong = shuffleArray(wrongAnswersArray);
+    const wrongAnswers = new Set(shuffledWrong.slice(0, 2));
 
     // If we couldn't get enough wrong answers, fill with placeholder
     while (wrongAnswers.size < 2) {
@@ -179,40 +192,64 @@ export function useQuiz(drugs: Drug[], questionCount: number = 10) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [score, setScore] = useState(0);
     const [finished, setFinished] = useState(false);
-    const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
 
     const questions = useMemo(() => {
         if (!drugs || drugs.length === 0) {
             return [];
         }
 
-        // Shuffle drugs first to randomize question selection
-        const shuffledDrugs = shuffleArray([...drugs]);
+        // Filter to only drugs that can generate questions
+        const validDrugs = drugs.filter(drug => 
+            drug.class && 
+            drug.mechanism && 
+            drug.indications?.length && 
+            drug.contraindications?.length
+        );
 
-        const allQuestions = shuffledDrugs
-            .map((drug) => {
-                const question = generateQuestion(drug, drugs);
-                if (!question) return null;
-                return {
-                    drug,
+        if (validDrugs.length === 0) {
+            return [];
+        }
+
+        // Generate questions by looping through drugs until we reach questionCount
+        // Each iteration can generate a different random question from the same drug
+        const generatedQuestions: Array<{ drug: Drug; question: string; correct: string; choices: string[] }> = [];
+        const maxAttempts = questionCount * 10; // Safety limit to prevent infinite loops
+        let attempts = 0;
+
+        while (generatedQuestions.length < questionCount && attempts < maxAttempts) {
+            attempts++;
+            
+            // Randomly select a drug (with replacement, so we can use the same drug multiple times)
+            const randomDrug = validDrugs[Math.floor(Math.random() * validDrugs.length)];
+            
+            // Generate a random question from this drug
+            const question = generateQuestion(randomDrug, drugs);
+            
+            if (question) {
+                generatedQuestions.push({
+                    drug: randomDrug,
                     ...question,
-                };
-            })
-            .filter((q): q is NonNullable<typeof q> => q !== null);
+                });
+            }
+        }
 
-        // Limit to the requested question count
-        return allQuestions.slice(0, questionCount);
+        return generatedQuestions;
+    }, [drugs, questionCount]);
+
+    // Reset quiz state when questions change (drugs or questionCount changes)
+    useEffect(() => {
+        setCurrentIndex(0);
+        setScore(0);
+        setFinished(false);
     }, [drugs, questionCount]);
 
     const current = questions[currentIndex];
 
     function selectAnswer(answer: string) {
-        // Prevent multiple selections
-        if (selectedAnswer !== null) {
+        if (finished || currentIndex >= questions.length) {
             return;
         }
 
-        setSelectedAnswer(answer);
         if (answer === current?.correct) {
             setScore((s) => s + 1);
         }
@@ -223,7 +260,6 @@ export function useQuiz(drugs: Drug[], questionCount: number = 10) {
             setFinished(true);
         } else {
             setCurrentIndex((i) => i + 1);
-            setSelectedAnswer(null); // Reset selection for next question
         }
     }
 
@@ -238,7 +274,6 @@ export function useQuiz(drugs: Drug[], questionCount: number = 10) {
         next,
         finished,
         score,
-        selectedAnswer,
-        hasAnswered: selectedAnswer !== null,
+        hasAnswered: false, // Removed - QuizCard manages this state
     };
 }

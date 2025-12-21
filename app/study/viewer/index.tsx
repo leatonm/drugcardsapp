@@ -80,10 +80,10 @@ const styles = StyleSheet.create({
         // ⛔ remove paddingTop here
     },
 
-    /* 🟦 STUDY MODE BANNER */
+    /* 🔵 STUDY MODE BANNER */
     modeBanner: {
         alignSelf: "center",
-        backgroundColor: "#3DA5D944",
+        backgroundColor: "#3D6A9F44",
         paddingVertical: spacing.sm,
         paddingHorizontal: spacing.xl,
         borderRadius: 20,
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     },
 
     modeBannerText: {
-        color: "#3DA5D9",
+        color: "#3D6A9F",
         fontSize: 16,
         fontWeight: "700",
         letterSpacing: 1.2,
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     },
 
     navButton: {
-        backgroundColor: "#3DA5D9",
+        backgroundColor: "#3D6A9F",
         paddingVertical: spacing.md,
         paddingHorizontal: spacing.xl,
         borderRadius: 16,
@@ -148,8 +148,8 @@ const styles = StyleSheet.create({
     counter: {
         fontSize: 8,
         fontWeight: "700",
-        color: "#3DA5D9",
-        backgroundColor: "#3DA5D922",
+        color: "#3D6A9F",
+        backgroundColor: "#3D6A9F22",
         paddingVertical: 6,
         paddingHorizontal: 14,
         borderRadius: 14,

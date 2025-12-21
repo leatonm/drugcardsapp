@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
 
     studyButton: {
         width: 250,
-        backgroundColor: "#3DA5D9",
+        backgroundColor: "#3D6A9F",
         paddingVertical: spacing.md,
         borderRadius: 16,
         marginBottom: spacing.md,
@@ -242,14 +242,14 @@ const styles = StyleSheet.create({
     levelContainer: {
         marginTop: spacing.md,
         marginBottom: spacing.md,
-        backgroundColor: "#3DA5D922",
+        backgroundColor: "#3D6A9F22",
         paddingVertical: spacing.sm,
         paddingHorizontal: spacing.lg,
         borderRadius: 16,
         flexDirection: "row",
         alignItems: "center",
         borderWidth: 1.5,
-        borderColor: "#3DA5D9",
+        borderColor: "#3D6A9F",
     },
 
     levelLabel: {
@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
 
     levelValue: {
         fontSize: 18,
-        color: "#3DA5D9",
+        color: "#3D6A9F",
         fontWeight: "800",
         textDecorationLine: "underline",
     },
@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
         padding: spacing.lg,
         borderRadius: 20,
         borderWidth: 2,
-        borderColor: "#3DA5D9",
+        borderColor: "#3D6A9F",
     },
 
     modalButton: {
@@ -315,11 +315,11 @@ const styles = StyleSheet.create({
         marginBottom: spacing.sm,
         alignItems: "center",
         borderWidth: 1,
-        borderColor: "#3DA5D9",
+        borderColor: "#3D6A9F",
     },
 
     modalButtonActive: {
-        backgroundColor: "#3DA5D9",
+        backgroundColor: "#3D6A9F",
     },
 
     modalButtonText: {

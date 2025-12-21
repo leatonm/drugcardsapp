@@ -71,16 +71,16 @@ const styles = StyleSheet.create({
         paddingBottom: 120,
     },
 
-    /* 🟦 STUDY MODE BANNER */
+    /* 🔵 STUDY MODE BANNER */
     modeBanner: {
         marginBottom: spacing.lg,
-        backgroundColor: "#3DA5D944",
+        backgroundColor: "#3D6A9F44",
         paddingVertical: spacing.sm,
         paddingHorizontal: spacing.xl,
         borderRadius: 20,
     },
     modeBannerText: {
-        color: "#3DA5D9",
+        color: "#3D6A9F",
         fontSize: 16,
         fontWeight: "700",
         letterSpacing: 1.2,
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
 
     startButton: {
         width: 250,
-        backgroundColor: "#3DA5D9",
+        backgroundColor: "#3D6A9F",
         paddingVertical: spacing.md,
         borderRadius: 16,
         marginBottom: spacing.md,

@@ -237,7 +237,7 @@ export default function FilteredStudyScreen() {
                                     style={({ pressed }) => [
                                         styles.modalOption,
                                         pressed && {
-                                            backgroundColor: "#3DA5D955",
+                                            backgroundColor: "#3D6A9F55",
                                         },
                                     ]}
                                     onPress={() => {
@@ -282,13 +282,13 @@ const styles = StyleSheet.create({
 
     modeBanner: {
         marginBottom: spacing.lg,
-        backgroundColor: "#3DA5D944",
+        backgroundColor: "#3D6A9F44",
         paddingVertical: spacing.sm,
         paddingHorizontal: spacing.xl,
         borderRadius: 20,
     },
     modeBannerText: {
-        color: "#3DA5D9",
+        color: "#3D6A9F",
         fontSize: 16,
         fontWeight: "700",
         letterSpacing: 1.1,
@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
 
     startButton: {
         width: 250,
-        backgroundColor: "#3DA5D9",
+        backgroundColor: "#3D6A9F",
         paddingVertical: spacing.md,
         borderRadius: 16,
         marginBottom: spacing.md,
@@ -377,13 +377,13 @@ const styles = StyleSheet.create({
         padding: spacing.lg,
         maxHeight: "70%",
         borderWidth: 2,
-        borderColor: "#3DA5D9",
+        borderColor: "#3D6A9F",
     },
 
     modalOption: {
-        backgroundColor: "#3DA5D933",
+        backgroundColor: "#3D6A9F33",
         borderWidth: 1,
-        borderColor: "#3DA5D9",
+        borderColor: "#3D6A9F",
         paddingVertical: spacing.md,
         borderRadius: 14,
         marginBottom: spacing.md,

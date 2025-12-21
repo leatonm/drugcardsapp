@@ -15,7 +15,7 @@ const cardColors = {
     card: "#0D1B2A",          // Deep navy
     textPrimary: "#E0E5EB",   // Soft off-white
     textMuted: "#A8B3BD",
-    accent: "#00D1C1",        // Teal accent
+    accent: "#3D6A9F",        // Medium blue accent (matching logo navy theme)
 };
 
 /* -------------------------------------------------
