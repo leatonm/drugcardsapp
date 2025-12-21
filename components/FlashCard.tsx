@@ -98,53 +98,81 @@ export default function FlashCard({ drug, resetFlip = false }: FlashCardProps) {
                 {/* ---------- BACK ---------- */}
                 <Animated.View style={[styles.absoluteCard, backStyle]}>
                     <View style={styles.card}>
-                        <ScrollView style={{ flex: 1 }}
-    contentContainerStyle={{
-        paddingRight: spacing.xl,
-        paddingBottom: spacing.lg,
-    }}
-    showsVerticalScrollIndicator
-    indicatorStyle="white"
->
+                        <ScrollView 
+                            style={styles.scrollView}
+                            contentContainerStyle={styles.scrollContent}
+                            showsVerticalScrollIndicator={false}
+                        >
+                            {/* Mechanism Section */}
+                            <View style={styles.section}>
+                                <View style={styles.sectionHeader}>
+                                    <Text style={styles.sectionIcon}>⚙️</Text>
+                                    <Text style={styles.sectionTitle}>Mechanism</Text>
+                                </View>
+                                <Text style={styles.sectionContent}>
+                                    {safe(drug.mechanism)}
+                                </Text>
+                            </View>
 
+                            {/* Indications Section */}
+                            <View style={styles.section}>
+                                <View style={styles.sectionHeader}>
+                                    <Text style={styles.sectionIcon}>✅</Text>
+                                    <Text style={styles.sectionTitle}>Indications</Text>
+                                </View>
+                                <Text style={styles.sectionContent}>
+                                    {safe(drug.indications)}
+                                </Text>
+                            </View>
 
-                            <Text style={styles.detail}>
-                                <Text style={styles.label}>Mechanism:</Text>{" "}
-                                {safe(drug.mechanism)}
-                            </Text>
-
-                            <Text style={styles.detail}>
-                                <Text style={styles.label}>Indications:</Text>{" "}
-                                {safe(drug.indications)}
-                            </Text>
-
-                            <Text style={styles.detail}>
-                                <Text style={styles.label}>Contraindications:</Text>{" "}
-                                {safe(drug.contraindications)}
-                            </Text>
+                            {/* Contraindications Section */}
+                            <View style={styles.section}>
+                                <View style={styles.sectionHeader}>
+                                    <Text style={styles.sectionIcon}>⚠️</Text>
+                                    <Text style={styles.sectionTitle}>Contraindications</Text>
+                                </View>
+                                <Text style={styles.sectionContent}>
+                                    {safe(drug.contraindications)}
+                                </Text>
+                            </View>
 
                             {/* 🚑 PREHOSPITAL / FIELD DRUGS */}
                             {!isRnStyleDrug(drug) && (
                                 <>
                                     {drug.adultDose && (
-                                        <Text style={styles.detail}>
-                                            <Text style={styles.label}>Adult Dose:</Text>{" "}
-                                            {drug.adultDose}
-                                        </Text>
+                                        <View style={styles.section}>
+                                            <View style={styles.sectionHeader}>
+                                                <Text style={styles.sectionIcon}>👤</Text>
+                                                <Text style={styles.sectionTitle}>Adult Dose</Text>
+                                            </View>
+                                            <Text style={styles.sectionContent}>
+                                                {drug.adultDose}
+                                            </Text>
+                                        </View>
                                     )}
 
                                     {drug.pediatricDose && (
-                                        <Text style={styles.detail}>
-                                            <Text style={styles.label}>Pediatric Dose:</Text>{" "}
-                                            {drug.pediatricDose}
-                                        </Text>
+                                        <View style={styles.section}>
+                                            <View style={styles.sectionHeader}>
+                                                <Text style={styles.sectionIcon}>👶</Text>
+                                                <Text style={styles.sectionTitle}>Pediatric Dose</Text>
+                                            </View>
+                                            <Text style={styles.sectionContent}>
+                                                {drug.pediatricDose}
+                                            </Text>
+                                        </View>
                                     )}
 
                                     {drug.routes?.length > 0 && (
-                                        <Text style={styles.detail}>
-                                            <Text style={styles.label}>Routes:</Text>{" "}
-                                            {safe(drug.routes)}
-                                        </Text>
+                                        <View style={styles.section}>
+                                            <View style={styles.sectionHeader}>
+                                                <Text style={styles.sectionIcon}>➡️</Text>
+                                                <Text style={styles.sectionTitle}>Routes</Text>
+                                            </View>
+                                            <Text style={styles.sectionContent}>
+                                                {safe(drug.routes)}
+                                            </Text>
+                                        </View>
                                     )}
                                 </>
                             )}
@@ -153,17 +181,27 @@ export default function FlashCard({ drug, resetFlip = false }: FlashCardProps) {
                             {isRnStyleDrug(drug) && (
                                 <>
                                     {drug.interactions?.length > 0 && (
-                                        <Text style={styles.detail}>
-                                            <Text style={styles.label}>Interactions:</Text>{" "}
-                                            {safe(drug.interactions)}
-                                        </Text>
+                                        <View style={styles.section}>
+                                            <View style={styles.sectionHeader}>
+                                                <Text style={styles.sectionIcon}>🔗</Text>
+                                                <Text style={styles.sectionTitle}>Interactions</Text>
+                                            </View>
+                                            <Text style={styles.sectionContent}>
+                                                {safe(drug.interactions)}
+                                            </Text>
+                                        </View>
                                     )}
 
                                     {drug.education?.length > 0 && (
-                                        <Text style={styles.detail}>
-                                            <Text style={styles.label}>Patient Education:</Text>{" "}
-                                            {safe(drug.education)}
-                                        </Text>
+                                        <View style={styles.section}>
+                                            <View style={styles.sectionHeader}>
+                                                <Text style={styles.sectionIcon}>📚</Text>
+                                                <Text style={styles.sectionTitle}>Patient Education</Text>
+                                            </View>
+                                            <Text style={styles.sectionContent}>
+                                                {safe(drug.education)}
+                                            </Text>
+                                        </View>
                                     )}
                                 </>
                             )}
@@ -183,28 +221,36 @@ export default function FlashCard({ drug, resetFlip = false }: FlashCardProps) {
 const styles = StyleSheet.create({
     container: {
         width: "100%",
-        maxWidth: 420,
-        height: 360,
+        maxWidth: 480,
+        minWidth: 320,
+        height: 400,
         alignSelf: "center",
-        marginBottom: spacing.xl,
+        marginBottom: spacing.lg,
         perspective: 1200,
     },
 
     absoluteCard: {
         position: "absolute",
-        inset: 0,
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: "100%",
     },
 
     card: {
+        width: "100%",
         flex: 1,
         borderRadius: 24,
         padding: spacing.lg,
         backgroundColor: cardColors.card,
         shadowColor: "#000",
-        shadowOpacity: 0.25,
-        shadowRadius: 12,
-        shadowOffset: { width: 0, height: 6 },
-        elevation: 7,
+        shadowOpacity: 0.3,
+        shadowRadius: 16,
+        shadowOffset: { width: 0, height: 8 },
+        elevation: 8,
+        borderWidth: 1,
+        borderColor: "rgba(61, 106, 159, 0.2)",
     },
 
     frontCenter: {
@@ -215,45 +261,85 @@ const styles = StyleSheet.create({
     },
 
     generic: {
-        fontSize: 34,
+        fontSize: 36,
         fontWeight: "900",
         textAlign: "center",
         color: cardColors.textPrimary,
         marginBottom: spacing.sm,
+        letterSpacing: 0.5,
     },
 
     brand: {
         fontSize: 20,
-        fontWeight: "500",
+        fontWeight: "600",
         textAlign: "center",
         color: cardColors.textMuted,
         marginBottom: spacing.md,
+        fontStyle: "italic",
     },
 
     classText: {
-        fontSize: 18,
+        fontSize: 16,
         textAlign: "center",
-        color: cardColors.textMuted,
+        color: cardColors.accent,
+        backgroundColor: "rgba(61, 106, 159, 0.15)",
+        paddingVertical: spacing.xs,
+        paddingHorizontal: spacing.md,
+        borderRadius: 12,
+        overflow: "hidden",
+        fontWeight: "600",
     },
 
     tapText: {
         textAlign: "center",
         color: cardColors.accent,
-        fontSize: 14,
+        fontSize: 13,
         marginTop: spacing.md,
-        opacity: 0.9,
+        opacity: 0.85,
+        fontWeight: "500",
+        letterSpacing: 0.3,
     },
 
-    label: {
+    scrollView: {
+        flex: 1,
+    },
+
+    scrollContent: {
+        paddingBottom: spacing.xl,
+        paddingTop: spacing.xs,
+    },
+
+    section: {
+        backgroundColor: "rgba(61, 106, 159, 0.08)",
+        borderRadius: 16,
+        padding: spacing.lg,
+        marginBottom: spacing.lg,
+        borderLeftWidth: 3,
+        borderLeftColor: cardColors.accent,
+    },
+
+    sectionHeader: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: spacing.md,
+    },
+
+    sectionIcon: {
+        fontSize: 18,
+        marginRight: spacing.xs,
+    },
+
+    sectionTitle: {
+        fontSize: 16,
         fontWeight: "700",
         color: cardColors.accent,
-        fontSize: 16,
+        letterSpacing: 0.5,
     },
 
-    detail: {
+    sectionContent: {
         fontSize: 16,
-        lineHeight: 22,
+        lineHeight: 24,
         color: cardColors.textPrimary,
-        marginBottom: spacing.md,
+        paddingLeft: spacing.xs,
     },
 });

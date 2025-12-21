@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
         width: "100%",
         maxWidth: 480,       // controls width on web
         alignSelf: "center",
-        padding: spacing.lg,
+        padding: spacing.md,
         alignItems: "center",
     },
 
@@ -199,13 +199,15 @@ const styles = StyleSheet.create({
         width: "100%",
         maxWidth: 480,
         backgroundColor: "#0D1B2A", // deep navy (matches FlashCard)
-        padding: spacing.lg,
-        borderRadius: 20,
+        padding: spacing.md,
+        borderRadius: 24,
         shadowColor: "#000",
         shadowOpacity: 0.3,
-        shadowRadius: 12,
-        shadowOffset: { width: 0, height: 6 },
+        shadowRadius: 16,
+        shadowOffset: { width: 0, height: 8 },
         elevation: 8,
+        borderWidth: 1,
+        borderColor: "rgba(220, 53, 69, 0.2)", // subtle red border to match quiz theme
     },
 
     title: {
@@ -213,6 +215,9 @@ const styles = StyleSheet.create({
         color: "#E0E5EB",
         textAlign: "center",
         marginBottom: spacing.md,
+        fontSize: 18,
+        fontWeight: "600",
+        lineHeight: 24,
     },
     subtext: {
         ...typography.subtext,
@@ -227,37 +232,50 @@ const styles = StyleSheet.create({
 
     /* CHOICES */
     choicesBox: {
-        gap: spacing.md,
-        marginBottom: spacing.lg,
+        gap: spacing.sm,
+        marginBottom: spacing.md,
     },
     choiceButton: {
         padding: spacing.md,
         borderRadius: 16,
-        backgroundColor: "#142D3C",
-        borderWidth: 1,
-        borderColor: "#3DA5D9", // blue border (kept)
+        backgroundColor: "rgba(220, 53, 69, 0.08)",
+        borderWidth: 2,
+        borderColor: "rgba(220, 53, 69, 0.3)",
+        borderLeftWidth: 3,
+        borderLeftColor: colors.danger,
     },
     choiceText: {
         ...typography.body,
         color: "#E0E5EB",
         fontWeight: "600",
+        fontSize: 16,
+        lineHeight: 22,
     },
 
     /* CORRECT / WRONG */
     correct: {
-        backgroundColor: "#00C98BAA", // green highlight
+        backgroundColor: "rgba(0, 201, 139, 0.15)", // green highlight
         borderColor: "#00C98B",
+        borderLeftColor: "#00C98B",
     },
     wrong: {
-        backgroundColor: "#DC354544", // quiz red translucent
+        backgroundColor: "rgba(220, 53, 69, 0.15)", // quiz red translucent
         borderColor: "#DC3545",
+        borderLeftColor: "#DC3545",
     },
 
     /* NEXT BUTTON */
     nextButton: {
         backgroundColor: colors.danger,
         paddingVertical: spacing.md,
+        paddingHorizontal: spacing.lg,
         borderRadius: 16,
+        alignItems: "center",
+        shadowColor: "#000",
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: 4,
     },
     nextText: {
         color: "#FFF",
@@ -297,6 +315,12 @@ const styles = StyleSheet.create({
         paddingVertical: spacing.md,
         paddingHorizontal: spacing.xl,
         borderRadius: 16,
+        alignItems: "center",
+        shadowColor: "#000",
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: 4,
     },
     reviewButtonText: {
         color: "#FFF",
@@ -311,6 +335,12 @@ const styles = StyleSheet.create({
         paddingVertical: spacing.md,
         paddingHorizontal: spacing.xl,
         borderRadius: 16,
+        alignItems: "center",
+        shadowColor: "#000",
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: 4,
     },
     doneText: {
         color: "#FFF",
@@ -323,21 +353,23 @@ const styles = StyleSheet.create({
         fontWeight: "900",
         textAlign: "center",
         color: "#E0E5EB",
-        marginBottom: spacing.sm,
+        marginBottom: spacing.xs,
+        letterSpacing: 0.5,
     },
 
     brandName: {
-        fontSize: 18,
+        fontSize: 16,
         fontWeight: "600",
         textAlign: "center",
         color: "#A8B3BD",
-        marginBottom: spacing.lg,
+        marginBottom: spacing.sm,
+        fontStyle: "italic",
     },
 
     /* Question Counter */
     questionCounter: {
         alignSelf: "center",
-        backgroundColor: "#DC354544",
+        backgroundColor: "rgba(220, 53, 69, 0.15)",
         paddingVertical: spacing.xs,
         paddingHorizontal: spacing.md,
         borderRadius: 20,

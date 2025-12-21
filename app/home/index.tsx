@@ -16,7 +16,7 @@ import { UserScope, useUserScope } from "../../hooks/useUserScope";
 import { colors } from "../../styles/colors";
 import { spacing } from "../../styles/spacing";
 
-const SCOPE_OPTIONS: UserScope[] = ["EMT", "RN", "Paramedic", "ALL"];
+const SCOPE_OPTIONS: UserScope[] = ["EMT", "AEMT", "RN", "Paramedic"];
 const DISCLAIMER_KEY = "homeDisclaimerAccepted";
 
 export default function HomeScreen() {

@@ -1,4 +1,6 @@
 // hooks/useStatistics.ts
+// TODO: When user login is implemented, statistics will sync online when logged in
+// For now, statistics work in offline mode using local AsyncStorage
 import { useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 

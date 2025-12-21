@@ -73,8 +73,10 @@ export default function QuizViewer() {
                     <Text style={styles.modeBannerText}>QUIZ MODE</Text>
                 </View>
 
-                {/* Quiz Engine */}
-                <QuizCard drugs={finalDrugs} start={start} questionCount={questionCount} />
+                {/* Quiz Engine - Centered */}
+                <View style={styles.quizCardWrapper}>
+                    <QuizCard drugs={finalDrugs} start={start} questionCount={questionCount} />
+                </View>
             </View>
         </View>
     );
@@ -92,7 +94,11 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        paddingBottom: 120,
+        paddingTop: spacing.lg,
+        paddingBottom: spacing.lg,
+        maxWidth: 480,
+        alignSelf: "center",
+        width: "100%",
     },
 
     /* 🟥 QUIZ MODE BANNER */
@@ -101,7 +107,12 @@ const styles = StyleSheet.create({
         paddingVertical: spacing.sm,
         paddingHorizontal: spacing.xl,
         borderRadius: 20,
-        marginBottom: spacing.lg,
+        marginBottom: spacing.md,
+    },
+
+    quizCardWrapper: {
+        width: "100%",
+        alignItems: "center",
     },
     modeBannerText: {
         color: colors.danger,

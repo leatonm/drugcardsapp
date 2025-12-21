@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { View, Text, Pressable, StyleSheet } from "react-native";
+import { View, Text, Pressable, StyleSheet, ScrollView } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import FlashCard from "../../../components/FlashCard";
+import AppHeader from "../../../components/AppHeader";
 import { colors } from "../../../styles/colors";
 import { spacing } from "../../../styles/spacing";
 
@@ -17,56 +18,58 @@ export default function FlashcardViewer() {
 
     return (
         <View style={styles.container}>
+            <ScrollView 
+                style={styles.scrollView}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+            >
+                <AppHeader />
 
-            {/* TOP SPACER */}
-            <View style={{ flex: 1 }} />
+                {/* 🔽 GROUPED HEADER + CARD */}
+                <View style={styles.studyBlock}>
+                    <View style={styles.modeBanner}>
+                        <Text style={styles.modeBannerText}>STUDY MODE</Text>
+                    </View>
 
-            {/* 🔽 GROUPED HEADER + CARD */}
-            <View style={styles.studyBlock}>
-                <View style={styles.modeBanner}>
-                    <Text style={styles.modeBannerText}>STUDY MODE</Text>
+                    <FlashCard drug={drugs[index]} resetFlip />
                 </View>
 
-                <FlashCard drug={drugs[index]} resetFlip />
-            </View>
+                {/* Navigation */}
+                <View style={styles.controls}>
+                    <Pressable
+                        style={[styles.navButton, index === 0 && styles.disabled]}
+                        onPress={prev}
+                        disabled={index === 0}
+                    >
+                        <Text style={styles.navButtonText}>◀</Text>
+                    </Pressable>
 
-            {/* Navigation */}
-            <View style={styles.controls}>
+                    <View style={styles.counterContainer}>
+                        <Text style={styles.counter}>
+                            {index + 1} / {drugs.length}
+                        </Text>
+                    </View>
+
+                    <Pressable
+                        style={[
+                            styles.navButton,
+                            index === drugs.length - 1 && styles.disabled,
+                        ]}
+                        onPress={next}
+                        disabled={index === drugs.length - 1}
+                    >
+                        <Text style={styles.navButtonText}>▶</Text>
+                    </Pressable>
+                </View>
+
+                {/* Exit */}
                 <Pressable
-                    style={[styles.navButton, index === 0 && styles.disabled]}
-                    onPress={prev}
-                    disabled={index === 0}
+                    style={styles.exitButton}
+                    onPress={() => router.replace("/study")}
                 >
-                    <Text style={styles.navButtonText}>Previous</Text>
+                    <Text style={styles.exitText}>Exit Study Session</Text>
                 </Pressable>
-
-                <Text style={styles.counter}>
-                    {index + 1} / {drugs.length}
-                </Text>
-
-                <Pressable
-                    style={[
-                        styles.navButton,
-                        index === drugs.length - 1 && styles.disabled,
-                    ]}
-                    onPress={next}
-                    disabled={index === drugs.length - 1}
-                >
-                    <Text style={styles.navButtonText}>Next</Text>
-                </Pressable>
-            </View>
-
-            {/* Exit */}
-            <Pressable
-                style={styles.exitButton}
-                onPress={() => router.replace("/study")}
-            >
-                <Text style={styles.exitText}>Exit Study Session</Text>
-            </Pressable>
-
-            {/* BOTTOM SPACER */}
-            <View style={{ flex: 1 }} />
-
+            </ScrollView>
         </View>
     );
 
@@ -75,9 +78,29 @@ export default function FlashcardViewer() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingHorizontal: spacing.lg,
         backgroundColor: colors.background,
-        // ⛔ remove paddingTop here
+    },
+
+    scrollView: {
+        flex: 1,
+    },
+
+    scrollContent: {
+        paddingHorizontal: spacing.lg,
+        paddingTop: spacing.xl,
+        paddingBottom: spacing.xl,
+        flexGrow: 1,
+        maxWidth: 480,
+        alignSelf: "center",
+        width: "100%",
+        alignItems: "center",
+    },
+
+    studyBlock: {
+        width: "100%",
+        alignItems: "stretch",
+        marginTop: spacing.lg,
+        marginBottom: spacing.md,
     },
 
     /* 🔵 STUDY MODE BANNER */
@@ -87,10 +110,7 @@ const styles = StyleSheet.create({
         paddingVertical: spacing.sm,
         paddingHorizontal: spacing.xl,
         borderRadius: 20,
-
-        // ✅ THIS is the fix
-        marginTop: spacing.xl,
-        marginBottom: spacing.xl,
+        marginBottom: spacing.md,
     },
 
     modeBannerText: {
@@ -117,17 +137,18 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         gap: spacing.lg,
-        marginBottom: spacing.lg,
+        marginTop: spacing.md,
+        marginBottom: spacing.sm,
         width: "100%",
     },
 
     navButton: {
         backgroundColor: "#3D6A9F",
-        paddingVertical: spacing.md,
-        paddingHorizontal: spacing.xl,
-        borderRadius: 16,
-        minWidth: 120,
+        width: 50,
+        height: 50,
+        borderRadius: 25,
         alignItems: "center",
+        justifyContent: "center",
         shadowColor: "#000",
         shadowOpacity: 0.15,
         shadowRadius: 8,
@@ -137,23 +158,31 @@ const styles = StyleSheet.create({
 
     navButtonText: {
         color: colors.buttonText,
-        fontSize: 16,
-        fontWeight: "700",
+        fontSize: 28,
+        fontWeight: "900",
+        lineHeight: 28,
+        textAlign: "center",
+        includeFontPadding: false,
+        textAlignVertical: "center",
     },
 
     disabled: {
         opacity: 0.35,
     },
 
+    counterContainer: {
+        backgroundColor: "#3D6A9F22",
+        paddingVertical: spacing.sm,
+        paddingHorizontal: spacing.lg,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: "#3D6A9F",
+        minWidth: 90,
+    },
     counter: {
-        fontSize: 8,
+        fontSize: 16,
         fontWeight: "700",
         color: "#3D6A9F",
-        backgroundColor: "#3D6A9F22",
-        paddingVertical: 6,
-        paddingHorizontal: 14,
-        borderRadius: 14,
-        minWidth: 64,
         textAlign: "center",
     },
 
@@ -163,7 +192,8 @@ const styles = StyleSheet.create({
         paddingVertical: spacing.md,
         paddingHorizontal: spacing.xl,
         borderRadius: 16,
-        marginBottom: spacing.xl,
+        marginTop: spacing.sm,
+        marginBottom: spacing.lg,
     },
 
     exitText: {

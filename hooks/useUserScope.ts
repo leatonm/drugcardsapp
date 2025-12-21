@@ -1,12 +1,13 @@
-import { useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useEffect, useState } from "react";
 
-export type UserScope = "ALL" | "EMT" | "Paramedic" | "RN";
+export type UserScope = "EMT" | "AEMT" | "Paramedic" | "RN";
 
 const STORAGE_KEY = "user_scope";
 
 export function useUserScope() {
-    const [scope, setScope] = useState<UserScope>("ALL");
+    // Default level is EMT (will be updated from user profile when login is implemented)
+    const [scope, setScope] = useState<UserScope>("EMT");
     const [loading, setLoading] = useState(true);
 
     // Load on startup

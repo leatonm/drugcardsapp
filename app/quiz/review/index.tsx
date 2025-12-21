@@ -141,7 +141,9 @@ const styles = StyleSheet.create({
     },
     title: {
         ...typography.h1,
-        color: colors.textPrimary,
+        color: "#1A1A1A",
+        fontWeight: "800",
+        fontSize: 28,
         marginBottom: spacing.md,
         textAlign: "center",
     },

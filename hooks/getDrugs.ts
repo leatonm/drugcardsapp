@@ -68,11 +68,8 @@ export function useDrugs(scope: UserScope) {
         loadData();
     }, []);
 
-    // Filter by scope - handle "ALL" case explicitly
+    // Filter by scope
     const drugs = useMemo(() => {
-        if (scope === "ALL") {
-            return allDrugs;
-        }
         return allDrugs.filter(
             drug =>
                 Array.isArray(drug.scope) &&
