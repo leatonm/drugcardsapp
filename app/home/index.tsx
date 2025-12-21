@@ -122,7 +122,7 @@ export default function HomeScreen() {
                         style={styles.actionCard}
                         onPress={() => router.push("/statistics" as any)}
                     >
-                        <Text style={styles.actionCardIcon}>📊</Text>
+                        <Text style={styles.actionCardIcon}>📈</Text>
                         <Text style={styles.actionCardTitle}>Statistics</Text>
                         <Text style={styles.actionCardSubtext}>View Progress</Text>
                     </Pressable>
@@ -361,6 +361,7 @@ const styles = StyleSheet.create({
     actionCardIcon: {
         fontSize: 24,
         marginBottom: 4,
+        // No color set - allows emoji to render in native color on all platforms
     },
     actionCardTitle: {
         fontSize: 12,
