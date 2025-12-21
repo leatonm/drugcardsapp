@@ -131,7 +131,7 @@ export default function HomeScreen() {
                         style={styles.actionCard}
                         onPress={() => setScopeModalVisible(true)}
                     >
-                        <Text style={styles.actionCardIcon}>⚕️</Text>
+                        <Text style={styles.actionCardIcon}>🎓</Text>
                         <Text style={styles.actionCardTitle}>Level: {scope}</Text>
                         <Text style={styles.actionCardSubtext}>Change Credentials</Text>
                     </Pressable>
