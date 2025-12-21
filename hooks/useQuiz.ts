@@ -188,10 +188,20 @@ function generateQuestion(drug: Drug, allDrugs: Drug[]): Question | null {
 // QUIZ HOOK
 // ---------------------
 
+export type QuizAnswer = {
+    drug: Drug;
+    question: string;
+    correctAnswer: string;
+    userAnswer: string;
+    choices: string[];
+    isCorrect: boolean;
+};
+
 export function useQuiz(drugs: Drug[], questionCount: number = 10) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [score, setScore] = useState(0);
     const [finished, setFinished] = useState(false);
+    const [answers, setAnswers] = useState<QuizAnswer[]>([]);
 
     const questions = useMemo(() => {
         if (!drugs || drugs.length === 0) {
@@ -241,18 +251,34 @@ export function useQuiz(drugs: Drug[], questionCount: number = 10) {
         setCurrentIndex(0);
         setScore(0);
         setFinished(false);
+        setAnswers([]);
     }, [drugs, questionCount]);
 
     const current = questions[currentIndex];
 
     function selectAnswer(answer: string) {
-        if (finished || currentIndex >= questions.length) {
+        if (finished || currentIndex >= questions.length || !current) {
             return;
         }
 
-        if (answer === current?.correct) {
+        const isCorrect = answer === current.correct;
+        if (isCorrect) {
             setScore((s) => s + 1);
         }
+
+        // Track the answer for review
+        setAnswers((prev) => {
+            const newAnswers = [...prev];
+            newAnswers[currentIndex] = {
+                drug: current.drug,
+                question: current.question,
+                correctAnswer: current.correct,
+                userAnswer: answer,
+                choices: current.choices,
+                isCorrect,
+            };
+            return newAnswers;
+        });
     }
 
     function next() {
@@ -274,6 +300,7 @@ export function useQuiz(drugs: Drug[], questionCount: number = 10) {
         next,
         finished,
         score,
+        answers, // All answers for review
         hasAnswered: false, // Removed - QuizCard manages this state
     };
 }

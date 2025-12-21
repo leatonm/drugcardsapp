@@ -11,13 +11,6 @@ import { spacing } from "../../styles/spacing";
 import { colors } from "../../styles/colors";
 import AppHeader from "../../components/AppHeader";
 
-const OPTIONS = [
-  { key: "all", label: "Drug Cards" },
-  { key: "filtered", label: "Filtered Drug Cards" },
-  { key: "lookup", label: "Drug Lookup" }, // ✅ NEW
-];
-
-
 export default function StudyIndex() {
     const router = useRouter();
 
@@ -37,22 +30,29 @@ export default function StudyIndex() {
                 </Text>
 
                 <View style={styles.options}>
-                    {OPTIONS.map(opt => (
-                        <Pressable
-                            key={opt.key}
-                            style={({ pressed }) => [
-                                styles.optionButton,
-                                pressed && { transform: [{ scale: 0.97 }] },
-                            ]}
-                            onPress={() =>
-                                router.push(`/study/${opt.key}`)
-                            }
-                        >
-                            <Text style={styles.optionButtonText}>
-                                {opt.label}
-                            </Text>
-                        </Pressable>
-                    ))}
+                    <Pressable
+                        style={styles.studyButton}
+                        onPress={() => router.push("/study/all")}
+                    >
+                        <Text style={styles.studyButtonText}>Drug Cards</Text>
+                        <Text style={styles.buttonSubtext}>Study All Drugs</Text>
+                    </Pressable>
+
+                    <Pressable
+                        style={styles.studyButton}
+                        onPress={() => router.push("/study/filtered")}
+                    >
+                        <Text style={styles.studyButtonText}>Filtered Drug Cards</Text>
+                        <Text style={styles.buttonSubtext}>Study by Category</Text>
+                    </Pressable>
+
+                    <Pressable
+                        style={styles.studyButton}
+                        onPress={() => router.push("/study/lookup")}
+                    >
+                        <Text style={styles.studyButtonText}>Drug Lookup</Text>
+                        <Text style={styles.buttonSubtext}>Search & Browse</Text>
+                    </Pressable>
 
                     {/* ✅ ALWAYS GO HOME */}
                     <TouchableOpacity
@@ -71,15 +71,17 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: colors.background,
-        paddingHorizontal: spacing.lg,
     },
 
     /* 🔑 Same vertical alignment trick as Home/Login */
     contentWrapper: {
         flex: 1,
+        padding: spacing.md,
+        paddingHorizontal: spacing.lg,
+        maxWidth: 400,
+        alignSelf: "center",
+        width: "100%",
         justifyContent: "center",
-        alignItems: "center",
-        paddingBottom: 120,
     },
 
     /* 🔵 STUDY MODE BANNER */
@@ -107,36 +109,40 @@ const styles = StyleSheet.create({
 
     options: {
         width: "100%",
-        alignItems: "center",
+        gap: spacing.sm,
+        marginBottom: spacing.md,
     },
 
     /* 🔵 STUDY MODE BUTTONS */
-    optionButton: {
-        width: 250,
+    studyButton: {
         backgroundColor: "#3D6A9F",
-        paddingVertical: spacing.md,
+        padding: spacing.md,
         borderRadius: 16,
-        marginBottom: spacing.md,
         alignItems: "center",
         shadowColor: "#000",
-        shadowOpacity: 0.15,
-        shadowRadius: 10,
-        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.12,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 3 },
         elevation: 4,
     },
-    optionButtonText: {
+    studyButtonText: {
+        fontSize: 22,
+        fontWeight: "800",
         color: colors.buttonText,
-        fontSize: 16,
-        fontWeight: "700",
-        textAlign: "center",
+        marginBottom: 2,
+    },
+    buttonSubtext: {
+        fontSize: 12,
+        color: colors.buttonText,
+        opacity: 0.9,
+        fontWeight: "500",
     },
 
     backButton: {
-        width: 250,
         backgroundColor: colors.accent,
-        paddingVertical: spacing.md,
+        padding: spacing.md,
         borderRadius: 16,
-        marginTop: spacing.md,
+        marginTop: spacing.sm,
         alignItems: "center",
         shadowColor: "#000",
         shadowOpacity: 0.1,

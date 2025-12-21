@@ -1,5 +1,5 @@
-import { View, Text, StyleSheet } from "react-native";
 import { Stack } from "expo-router";
+import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors } from "../styles/colors";
 import { spacing } from "../styles/spacing";
@@ -56,8 +56,8 @@ const styles = StyleSheet.create({
 
   footerText: {
     fontSize: 12,
-    color: colors.textMuted,
-    opacity: 0.8,
+    color: "#4A5568",
+    fontWeight: "500",
   },
 });
 

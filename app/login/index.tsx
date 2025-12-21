@@ -3,10 +3,17 @@ import { View, Image, TouchableOpacity, Text, StyleSheet } from "react-native";
 import { router } from "expo-router";
 import { spacing } from "../../styles/spacing";
 import { colors } from "../../styles/colors";
+import { useAuth } from "../../hooks/useAuth";
 
 export default function LoginScreen() {
+    const { login } = useAuth();
 
-    const handleEnter = () => router.replace("/home");
+    const handleEnter = () => {
+        // For now, just mark as logged in without email
+        // In the future, this would be a proper login flow
+        login("guest@example.com");
+        router.replace("/home");
+    };
 
     return (
         <View style={styles.container}>

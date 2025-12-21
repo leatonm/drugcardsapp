@@ -26,50 +26,26 @@ export default function QuizHome() {
                 </Text>
 
                 <View style={styles.options}>
-                    {/* Random Quiz */}
                     <Pressable
+                        style={styles.quizButton}
                         onPress={() => router.push("/quiz/random")}
-                        style={({ pressed }) => [
-                            styles.quizButton,
-                            pressed && styles.pressed,
-                        ]}
                     >
                         <Text style={styles.quizButtonText}>Quiz</Text>
+                        <Text style={styles.buttonSubtext}>Random Questions</Text>
                     </Pressable>
 
-                    {/* Filtered Quiz */}
                     <Pressable
+                        style={styles.quizButton}
                         onPress={() => router.push("/quiz/filtered")}
-                        style={({ pressed }) => [
-                            styles.quizButton,
-                            pressed && styles.pressed,
-                        ]}
                     >
-                        <Text style={styles.quizButtonText}>
-                            Filtered Quiz
-                        </Text>
-                    </Pressable>
-
-                    {/* Assigned Quiz */}
-                    <Pressable
-                        onPress={() => router.push("/quiz/assigned")}
-                        style={({ pressed }) => [
-                            styles.textLink,
-                            pressed && { opacity: 0.6 },
-                        ]}
-                    >
-                        <Text style={styles.textLinkText}>
-                            Assigned Quiz
-                        </Text>
+                        <Text style={styles.quizButtonText}>Filtered Quiz</Text>
+                        <Text style={styles.buttonSubtext}>Test by Category</Text>
                     </Pressable>
 
                     {/* Back → ALWAYS HOME */}
                     <Pressable
+                        style={styles.backButton}
                         onPress={() => router.replace("/home")}
-                        style={({ pressed }) => [
-                            styles.backButton,
-                            pressed && styles.pressedBack,
-                        ]}
                     >
                         <Text style={styles.backText}>Back</Text>
                     </Pressable>
@@ -83,15 +59,17 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: colors.background,
-        paddingHorizontal: spacing.lg,
     },
 
     /* 🔑 Matches Home / Study alignment */
     contentWrapper: {
         flex: 1,
+        padding: spacing.md,
+        paddingHorizontal: spacing.lg,
+        maxWidth: 400,
+        alignSelf: "center",
+        width: "100%",
         justifyContent: "center",
-        alignItems: "center",
-        paddingBottom: 120, // keeps visual balance
     },
 
     /* 🟥 QUIZ MODE BANNER */
@@ -119,66 +97,51 @@ const styles = StyleSheet.create({
 
     options: {
         width: "100%",
-        alignItems: "center",
+        gap: spacing.sm,
+        marginBottom: spacing.md,
     },
 
     /* 🟥 QUIZ BUTTONS */
     quizButton: {
-        width: 250,
-        backgroundColor: "#DC3545",
-        paddingVertical: spacing.md,
+        backgroundColor: colors.danger,
+        padding: spacing.md,
         borderRadius: 16,
-        marginBottom: spacing.md,
         alignItems: "center",
         shadowColor: "#000",
-        shadowOpacity: 0.18,
+        shadowOpacity: 0.12,
         shadowRadius: 8,
-        shadowOffset: { width: 0, height: 4 },
+        shadowOffset: { width: 0, height: 3 },
         elevation: 4,
     },
     quizButtonText: {
+        fontSize: 22,
+        fontWeight: "800",
         color: colors.buttonText,
-        fontSize: 16,
-        fontWeight: "700",
+        marginBottom: 2,
     },
-
-    pressed: {
-        transform: [{ scale: 0.97 }],
-        shadowOpacity: 0.05,
-    },
-
-    /* Assigned Quiz link */
-    textLink: {
-        marginTop: spacing.sm,
-        marginBottom: spacing.lg,
-    },
-    textLinkText: {
-        color: colors.accent,
-        textDecorationLine: "underline",
-        fontSize: 15,
-        fontWeight: "600",
+    buttonSubtext: {
+        fontSize: 12,
+        color: colors.buttonText,
+        opacity: 0.9,
+        fontWeight: "500",
     },
 
     /* Back */
     backButton: {
-        width: 250,
         backgroundColor: colors.accent,
-        paddingVertical: spacing.md,
+        padding: spacing.md,
         borderRadius: 16,
+        marginTop: spacing.sm,
         alignItems: "center",
         shadowColor: "#000",
         shadowOpacity: 0.1,
-        shadowRadius: 5,
+        shadowRadius: 6,
         shadowOffset: { width: 0, height: 2 },
         elevation: 3,
     },
-    pressedBack: {
-        transform: [{ scale: 0.97 }],
-        shadowOpacity: 0.05,
-    },
     backText: {
-        color: colors.textPrimary,
+        color: colors.buttonText,
         fontSize: 16,
-        fontWeight: "600",
+        fontWeight: "700",
     },
 });

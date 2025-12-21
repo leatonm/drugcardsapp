@@ -43,15 +43,17 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: colors.background,
-        paddingHorizontal: spacing.lg,
     },
 
     /* 🔑 Matches Home / Study / Quiz alignment */
     contentWrapper: {
         flex: 1,
+        padding: spacing.md,
+        paddingHorizontal: spacing.lg,
+        maxWidth: 400,
+        alignSelf: "center",
+        width: "100%",
         justifyContent: "center",
-        alignItems: "center",
-        paddingBottom: 120,
     },
 
     /* 🟥 QUIZ MODE BANNER */
@@ -87,20 +89,20 @@ const styles = StyleSheet.create({
 
     /* Back button */
     backButton: {
-        width: 250,
         backgroundColor: colors.accent,
-        paddingVertical: spacing.md,
+        padding: spacing.md,
         borderRadius: 16,
+        marginTop: spacing.md,
         alignItems: "center",
         shadowColor: "#000",
         shadowOpacity: 0.1,
-        shadowRadius: 5,
+        shadowRadius: 6,
         shadowOffset: { width: 0, height: 2 },
         elevation: 3,
     },
     backText: {
-        color: colors.textPrimary,
+        color: colors.buttonText,
         fontSize: 16,
-        fontWeight: "600",
+        fontWeight: "700",
     },
 });

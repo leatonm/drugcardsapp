@@ -1,25 +1,27 @@
-import { useState, useRef, useEffect } from "react";
-import {
-    View,
-    Text,
-    StyleSheet,
-    TouchableOpacity,
-    Modal,
-    Animated,
-    Pressable,
-} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
-import { spacing } from "../../styles/spacing";
-import { colors } from "../../styles/colors";
+import { useEffect, useRef, useState } from "react";
+import {
+    Animated,
+    Modal,
+    Pressable,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
+} from "react-native";
 import AppHeader from "../../components/AppHeader";
-import { useUserScope, UserScope } from "../../hooks/useUserScope";
+import { useAuth } from "../../hooks/useAuth";
+import { UserScope, useUserScope } from "../../hooks/useUserScope";
+import { colors } from "../../styles/colors";
+import { spacing } from "../../styles/spacing";
 
-const SCOPE_OPTIONS: UserScope[] = ["EMT", "AEMT", "RN", "Paramedic"];
+const SCOPE_OPTIONS: UserScope[] = ["EMT", "RN", "Paramedic", "ALL"];
 const DISCLAIMER_KEY = "homeDisclaimerAccepted";
 
 export default function HomeScreen() {
     const { scope, updateScope } = useUserScope();
+    const { user, logout } = useAuth();
 
     const [scopeModalVisible, setScopeModalVisible] = useState(false);
     const [disclaimerVisible, setDisclaimerVisible] = useState(false);
@@ -66,47 +68,81 @@ export default function HomeScreen() {
         <View style={styles.container}>
             <View style={styles.contentWrapper}>
                 <AppHeader />
-                <Text style={styles.subtitle}>Select a mode to begin.</Text>
 
-                <View style={styles.section}>
-                    <TouchableOpacity
+                {/* User Status Card */}
+                <View style={styles.userCard}>
+                    <View style={styles.userInfo}>
+                        <Text style={styles.userGreeting}>
+                            {user.isLoggedIn ? `Welcome back!` : `Welcome!`}
+                        </Text>
+                        <View style={styles.membershipBadge}>
+                            <Text style={styles.membershipText}>
+                                {user.membershipTier === "free" ? "Free Tier" : "Premium"}
+                            </Text>
+                        </View>
+                    </View>
+                    <Pressable
+                        style={styles.loginButton}
+                        onPress={() => {
+                            if (user.isLoggedIn) {
+                                logout();
+                            } else {
+                                router.push("/login");
+                            }
+                        }}
+                    >
+                        <Text style={styles.loginButtonText}>
+                            {user.isLoggedIn ? "Logout" : "Login"}
+                        </Text>
+                    </Pressable>
+                </View>
+
+                {/* Main Action Buttons */}
+                <View style={styles.actionButtons}>
+                    <Pressable
                         style={styles.studyButton}
                         onPress={() => router.push("/study")}
                     >
-                        <Text style={styles.buttonText}>Study</Text>
-                    </TouchableOpacity>
+                        <Text style={styles.studyButtonText}>Study</Text>
+                        <Text style={styles.buttonSubtext}>Flashcards & Review</Text>
+                    </Pressable>
 
-                    <TouchableOpacity
+                    <Pressable
                         style={styles.quizButton}
                         onPress={() => router.push("/quiz")}
                     >
-                        <Text style={styles.buttonText}>Quiz</Text>
-                    </TouchableOpacity>
+                        <Text style={styles.quizButtonText}>Quiz</Text>
+                        <Text style={styles.buttonSubtext}>Test Your Knowledge</Text>
+                    </Pressable>
                 </View>
 
-                {/* LEVEL SELECTOR */}
-                <TouchableOpacity
-                    style={styles.levelContainer}
-                    onPress={() => setScopeModalVisible(true)}
-                >
-                    <Text style={styles.levelLabel}>Level:</Text>
-                    <Text style={styles.levelValue}>{scope}</Text>
-                </TouchableOpacity>
+                {/* Quick Actions */}
+                <View style={styles.quickActions}>
+                    <Pressable
+                        style={styles.actionCard}
+                        onPress={() => router.push("/statistics" as any)}
+                    >
+                        <Text style={styles.actionCardIcon}>📊</Text>
+                        <Text style={styles.actionCardTitle}>Statistics</Text>
+                        <Text style={styles.actionCardSubtext}>View Progress</Text>
+                    </Pressable>
 
-                {/* Disclaimer Link */}
+                    <Pressable
+                        style={styles.actionCard}
+                        onPress={() => setScopeModalVisible(true)}
+                    >
+                        <Text style={styles.actionCardIcon}>⚕️</Text>
+                        <Text style={styles.actionCardTitle}>Level: {scope}</Text>
+                        <Text style={styles.actionCardSubtext}>Change Credentials</Text>
+                    </Pressable>
+                </View>
+
+                {/* Footer Links */}
                 <Pressable
                     onPress={() => setDisclaimerVisible(true)}
-                    style={styles.disclaimerLink}
+                    style={styles.footerLink}
                 >
-                    <Text style={styles.disclaimerText}>Disclaimer</Text>
-                </Pressable>
-
-                {/* Instructor Portal */}
-                <Pressable
-                    onPress={() => alert("Instructor Portal Coming Soon")}
-                    style={styles.instructorLink}
-                >
-                    <Text style={styles.instructorText}>Instructor Portal</Text>
+                    <Text style={styles.footerLinkText}>Disclaimer</Text>
                 </Pressable>
             </View>
 
@@ -199,97 +235,156 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: colors.background,
-        paddingHorizontal: spacing.lg,
     },
-
     contentWrapper: {
         flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        paddingBottom: 120,
-    },
-
-    subtitle: {
-        fontSize: 18,
-        textAlign: "center",
-        marginBottom: spacing.md,
-        color: colors.textMuted,
-    },
-
-    section: {
-        marginBottom: spacing.md,
-        alignItems: "center",
-    },
-
-    studyButton: {
-        width: 250,
-        backgroundColor: "#3D6A9F",
-        paddingVertical: spacing.md,
-        borderRadius: 16,
-        marginBottom: spacing.md,
-        alignItems: "center",
-    },
-
-    quizButton: {
-        width: 250,
-        backgroundColor: "#DC3545",
-        paddingVertical: spacing.md,
-        borderRadius: 16,
-        marginBottom: spacing.md,
-        alignItems: "center",
-    },
-
-    levelContainer: {
-        marginTop: spacing.md,
-        marginBottom: spacing.md,
-        backgroundColor: "#3D6A9F22",
-        paddingVertical: spacing.sm,
+        padding: spacing.md,
         paddingHorizontal: spacing.lg,
+        maxWidth: 400, // Constrain width on web to match mobile
+        alignSelf: "center",
+        width: "100%",
+        justifyContent: "center",
+    },
+
+    /* User Card */
+    userCard: {
+        backgroundColor: colors.card,
         borderRadius: 16,
+        padding: spacing.md,
+        marginBottom: spacing.md,
         flexDirection: "row",
+        justifyContent: "space-between",
         alignItems: "center",
-        borderWidth: 1.5,
+        shadowColor: "#000",
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+        shadowOffset: { width: 0, height: 2 },
+        elevation: 3,
+    },
+    userInfo: {
+        flex: 1,
+    },
+    userGreeting: {
+        fontSize: 18,
+        fontWeight: "700",
+        color: colors.textPrimary,
+        marginBottom: 4,
+    },
+    membershipBadge: {
+        alignSelf: "flex-start",
+        backgroundColor: "#3D6A9F22",
+        paddingVertical: 3,
+        paddingHorizontal: 10,
+        borderRadius: 10,
+        borderWidth: 1,
         borderColor: "#3D6A9F",
     },
-
-    levelLabel: {
-        fontSize: 16,
-        fontWeight: "600",
-        marginRight: 6,
-    },
-
-    levelValue: {
-        fontSize: 18,
+    membershipText: {
+        fontSize: 11,
+        fontWeight: "700",
         color: "#3D6A9F",
-        fontWeight: "800",
-        textDecorationLine: "underline",
+    },
+    loginButton: {
+        backgroundColor: colors.accent,
+        paddingVertical: spacing.xs,
+        paddingHorizontal: spacing.md,
+        borderRadius: 10,
+    },
+    loginButtonText: {
+        color: colors.buttonText,
+        fontSize: 13,
+        fontWeight: "700",
     },
 
-    disclaimerLink: {
+    /* Main Action Buttons */
+    actionButtons: {
+        gap: spacing.sm,
+        marginBottom: spacing.md,
+    },
+    studyButton: {
+        backgroundColor: "#3D6A9F",
+        padding: spacing.md,
+        borderRadius: 16,
+        alignItems: "center",
+        shadowColor: "#000",
+        shadowOpacity: 0.12,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 3 },
+        elevation: 4,
+    },
+    studyButtonText: {
+        fontSize: 22,
+        fontWeight: "800",
+        color: colors.buttonText,
+        marginBottom: 2,
+    },
+    quizButton: {
+        backgroundColor: colors.danger,
+        padding: spacing.md,
+        borderRadius: 16,
+        alignItems: "center",
+        shadowColor: "#000",
+        shadowOpacity: 0.12,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 3 },
+        elevation: 4,
+    },
+    quizButtonText: {
+        fontSize: 22,
+        fontWeight: "800",
+        color: colors.buttonText,
+        marginBottom: 2,
+    },
+    buttonSubtext: {
+        fontSize: 12,
+        color: colors.buttonText,
+        opacity: 0.9,
+        fontWeight: "500",
+    },
+
+    /* Quick Actions */
+    quickActions: {
+        flexDirection: "row",
+        gap: spacing.sm,
         marginBottom: spacing.sm,
     },
-
-    disclaimerText: {
-        fontSize: 14,
-        color: colors.accent,
-        textDecorationLine: "underline",
-        fontWeight: "600",
+    actionCard: {
+        flex: 1,
+        backgroundColor: colors.card,
+        padding: spacing.sm,
+        paddingVertical: spacing.md,
+        borderRadius: 14,
+        alignItems: "center",
+        borderWidth: 1,
+        borderColor: colors.inputBorder,
     },
-
-    instructorLink: {
-        paddingVertical: 6,
+    actionCardIcon: {
+        fontSize: 24,
+        marginBottom: 4,
     },
-
-    instructorText: {
-        color: "#6c757d",
-        fontSize: 14,
-        textDecorationLine: "underline",
-    },
-
-    buttonText: {
-        color: colors.buttonText,
-        fontSize: 16,
+    actionCardTitle: {
+        fontSize: 12,
         fontWeight: "700",
+        color: colors.textPrimary,
+        marginBottom: 2,
+        textAlign: "center",
+    },
+    actionCardSubtext: {
+        fontSize: 10,
+        color: colors.textMuted,
+        textAlign: "center",
+    },
+
+    /* Footer Links */
+    footerLink: {
+        paddingVertical: spacing.xs,
+        alignItems: "center",
+    },
+    footerLinkText: {
+        fontSize: 12,
+        color: "#4A5568",
+        textDecorationLine: "underline",
+        fontWeight: "500",
     },
 
     modalOverlay: {
@@ -335,25 +430,31 @@ const styles = StyleSheet.create({
 
     disclaimerModal: {
         width: "85%",
+        maxWidth: 400,
         backgroundColor: colors.background,
         borderRadius: 20,
         padding: spacing.lg,
         borderWidth: 2,
         borderColor: colors.accent,
+        alignSelf: "center",
     },
 
     disclaimerTitle: {
-        fontSize: 20,
+        fontSize: 22,
         fontWeight: "800",
         marginBottom: spacing.sm,
         textAlign: "center",
+        color: "#1A1A1A",
     },
 
     disclaimerBody: {
-        fontSize: 14,
-        lineHeight: 20,
-        textAlign: "center",
+        fontSize: 15,
+        lineHeight: 24,
+        textAlign: "left",
         marginBottom: spacing.lg,
+        color: "#1A1A1A",
+        fontWeight: "500",
+        paddingHorizontal: spacing.xs,
     },
 
     acceptButton: {

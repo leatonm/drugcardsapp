@@ -37,10 +37,11 @@ export default function StudyAllScreen() {
                     <Text style={styles.loadingText}>Loading…</Text>
                 ) : (
                     <Pressable
-                        style={styles.startButton}
+                        style={styles.studyButton}
                         onPress={handleStart}
                     >
-                        <Text style={styles.startButtonText}>Start</Text>
+                        <Text style={styles.studyButtonText}>Start</Text>
+                        <Text style={styles.buttonSubtext}>Begin Studying All Drugs</Text>
                     </Pressable>
                 )}
 
@@ -60,15 +61,17 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: colors.background,
-        paddingHorizontal: spacing.lg,
     },
 
     /* 🔑 Matches Home / Study / Login alignment */
     contentWrapper: {
         flex: 1,
+        padding: spacing.md,
+        paddingHorizontal: spacing.lg,
+        maxWidth: 400,
+        alignSelf: "center",
+        width: "100%",
         justifyContent: "center",
-        alignItems: "center",
-        paddingBottom: 120,
     },
 
     /* 🔵 STUDY MODE BANNER */
@@ -100,36 +103,40 @@ const styles = StyleSheet.create({
         marginBottom: spacing.md,
     },
 
-    startButton: {
-        width: 250,
+    studyButton: {
         backgroundColor: "#3D6A9F",
-        paddingVertical: spacing.md,
+        padding: spacing.md,
         borderRadius: 16,
         marginBottom: spacing.md,
         alignItems: "center",
         shadowColor: "#000",
-        shadowOpacity: 0.15,
+        shadowOpacity: 0.12,
         shadowRadius: 8,
-        shadowOffset: { width: 0, height: 4 },
+        shadowOffset: { width: 0, height: 3 },
         elevation: 4,
     },
-    startButtonText: {
+    studyButtonText: {
+        fontSize: 22,
+        fontWeight: "800",
         color: colors.buttonText,
-        fontSize: 16,
-        fontWeight: "700",
-        textAlign: "center",
+        marginBottom: 2,
+    },
+    buttonSubtext: {
+        fontSize: 12,
+        color: colors.buttonText,
+        opacity: 0.9,
+        fontWeight: "500",
     },
 
     backButton: {
-        width: 250,
         backgroundColor: colors.accent,
-        paddingVertical: spacing.md,
+        padding: spacing.md,
         borderRadius: 16,
-        marginTop: spacing.md,
+        marginTop: spacing.sm,
         alignItems: "center",
         shadowColor: "#000",
         shadowOpacity: 0.1,
-        shadowRadius: 5,
+        shadowRadius: 6,
         shadowOffset: { width: 0, height: 2 },
         elevation: 3,
     },

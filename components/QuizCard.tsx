@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import type { Drug } from "../hooks/getDrugs";
 import { useQuiz } from "../hooks/useQuiz";
+import { useStatistics } from "../hooks/useStatistics";
 import { colors } from "../styles/colors";
 import { spacing } from "../styles/spacing";
 import { typography } from "../styles/typography";
@@ -16,7 +17,9 @@ interface Props {
 export default function QuizCard({ drugs, start, questionCount = 10 }: Props) {
     const router = useRouter();
     const quiz = useQuiz(drugs, questionCount);
+    const { recordQuiz } = useStatistics();
     const [selected, setSelected] = useState<string | null>(null);
+    const [statsRecorded, setStatsRecorded] = useState(false);
     const fadeAnim = useRef(new Animated.Value(0)).current;
 
     // Reset quiz when starting
@@ -36,6 +39,14 @@ export default function QuizCard({ drugs, start, questionCount = 10 }: Props) {
             useNativeDriver: true,
         }).start();
     }, [quiz.question, start, fadeAnim]);
+
+    // Record statistics when quiz is finished
+    useEffect(() => {
+        if (quiz.finished && !statsRecorded && quiz.total > 0) {
+            recordQuiz(quiz.score, quiz.total);
+            setStatsRecorded(true);
+        }
+    }, [quiz.finished, quiz.score, quiz.total, statsRecorded, recordQuiz]);
 
     if (!start || !quiz || !quiz.question) return null;
     const answered = selected !== null;
@@ -120,12 +131,30 @@ export default function QuizCard({ drugs, start, questionCount = 10 }: Props) {
                             Score: {quiz.score} / {quiz.total}
                         </Text>
 
-                        <Pressable
-                            style={styles.doneButton}
-                            onPress={() => router.back()}
-                        >
-                            <Text style={styles.doneText}>Done</Text>
-                        </Pressable>
+                        <View style={styles.finishButtons}>
+                            <Pressable
+                                style={[styles.reviewButton, styles.finishButton]}
+                                onPress={() => {
+                                    router.push({
+                                        pathname: "/quiz/review",
+                                        params: {
+                                            answers: JSON.stringify(quiz.answers),
+                                            score: quiz.score.toString(),
+                                            total: quiz.total.toString(),
+                                        },
+                                    });
+                                }}
+                            >
+                                <Text style={styles.reviewButtonText}>Review</Text>
+                            </Pressable>
+
+                            <Pressable
+                                style={[styles.doneButton, styles.finishButton]}
+                                onPress={() => router.back()}
+                            >
+                                <Text style={styles.doneText}>Done</Text>
+                            </Pressable>
+                        </View>
                     </View>
                 )}
             </View>
@@ -252,10 +281,32 @@ const styles = StyleSheet.create({
         color: "#E0E5EB",
         marginTop: spacing.sm,
     },
+    finishButtons: {
+        flexDirection: "row",
+        gap: spacing.md,
+        marginTop: spacing.lg,
+        width: "100%",
+    },
+    finishButton: {
+        flex: 1,
+    },
+
+    /* REVIEW BUTTON */
+    reviewButton: {
+        backgroundColor: "#3D6A9F",
+        paddingVertical: spacing.md,
+        paddingHorizontal: spacing.xl,
+        borderRadius: 16,
+    },
+    reviewButtonText: {
+        color: "#FFF",
+        fontSize: 16,
+        fontWeight: "700",
+        textAlign: "center",
+    },
 
     /* DONE BUTTON */
     doneButton: {
-        marginTop: spacing.lg,
         backgroundColor: colors.danger,
         paddingVertical: spacing.md,
         paddingHorizontal: spacing.xl,
@@ -265,6 +316,7 @@ const styles = StyleSheet.create({
         color: "#FFF",
         fontSize: 16,
         fontWeight: "700",
+        textAlign: "center",
     },
     drugName: {
         fontSize: 28,
