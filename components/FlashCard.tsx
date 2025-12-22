@@ -1,12 +1,12 @@
 import React, { useEffect } from "react";
-import { View, Text, StyleSheet, Pressable } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
-    useSharedValue,
     useAnimatedStyle,
+    useSharedValue,
     withSpring,
 } from "react-native-reanimated";
-import { spacing } from "../styles/spacing";
 import type { Drug } from "../hooks/getDrugs";
+import { spacing } from "../styles/spacing";
 
 /* -------------------------------------------------
    🎨 Color Theme
@@ -99,9 +99,15 @@ export default function FlashCard({ drug, resetFlip = false }: FlashCardProps) {
                 <Animated.View style={[styles.absoluteCard, backStyle]}>
                     <View style={styles.card}>
                         <View style={styles.backContent}>
-                            <View style={styles.sectionsContainer}>
+                            <View style={[
+                                styles.sectionsContainer,
+                                !isRnStyleDrug(drug) && styles.sectionsContainerSpread
+                            ]}>
                                 {/* Mechanism Section */}
-                                <View style={styles.contentBlock}>
+                                <View style={[
+                                    styles.contentBlock,
+                                    !isRnStyleDrug(drug) && styles.contentBlockSpread
+                                ]}>
                                     <Text style={styles.sectionTitle}>Mechanism</Text>
                                     <Text style={styles.sectionContent}>
                                         {safe(drug.mechanism)}
@@ -109,7 +115,10 @@ export default function FlashCard({ drug, resetFlip = false }: FlashCardProps) {
                                 </View>
 
                                 {/* Indications Section */}
-                                <View style={styles.contentBlock}>
+                                <View style={[
+                                    styles.contentBlock,
+                                    !isRnStyleDrug(drug) && styles.contentBlockSpread
+                                ]}>
                                     <Text style={styles.sectionTitle}>Indications</Text>
                                     <Text style={styles.sectionContent}>
                                         {safe(drug.indications)}
@@ -117,7 +126,10 @@ export default function FlashCard({ drug, resetFlip = false }: FlashCardProps) {
                                 </View>
 
                                 {/* Contraindications Section */}
-                                <View style={styles.contentBlock}>
+                                <View style={[
+                                    styles.contentBlock,
+                                    !isRnStyleDrug(drug) && styles.contentBlockSpread
+                                ]}>
                                     <Text style={styles.sectionTitle}>Contraindications</Text>
                                     <Text style={styles.sectionContent}>
                                         {safe(drug.contraindications)}
@@ -128,7 +140,7 @@ export default function FlashCard({ drug, resetFlip = false }: FlashCardProps) {
                             {!isRnStyleDrug(drug) && (
                                 <>
                                     {/* Adult Dose, Pediatric Dose, and Routes in one row */}
-                                    {(drug.adultDose || drug.pediatricDose || drug.routes?.length > 0) && (
+                                    {(drug.adultDose || drug.pediatricDose || (drug.routes && drug.routes.length > 0)) && (
                                         <View style={styles.dosageRow}>
                                             {drug.adultDose && (
                                                 <View style={styles.dosageBlock}>
@@ -148,7 +160,7 @@ export default function FlashCard({ drug, resetFlip = false }: FlashCardProps) {
                                                 </View>
                                             )}
 
-                                            {drug.routes?.length > 0 && (
+                                            {drug.routes && drug.routes.length > 0 && (
                                                 <View style={styles.dosageBlock}>
                                                     <Text style={styles.sectionTitle}>Routes</Text>
                                                     <Text style={styles.sectionContent}>
@@ -164,7 +176,7 @@ export default function FlashCard({ drug, resetFlip = false }: FlashCardProps) {
                                 {/* 🏥 RN / IN-HOSPITAL DRUGS */}
                                 {isRnStyleDrug(drug) && (
                                     <>
-                                        {drug.interactions?.length > 0 && (
+                                        {drug.interactions && drug.interactions.length > 0 && (
                                             <View style={styles.contentBlock}>
                                                 <Text style={styles.sectionTitle}>Interactions</Text>
                                                 <Text style={styles.sectionContent}>
@@ -173,7 +185,7 @@ export default function FlashCard({ drug, resetFlip = false }: FlashCardProps) {
                                             </View>
                                         )}
 
-                                        {drug.education?.length > 0 && (
+                                        {drug.education && drug.education.length > 0 && (
                                             <View style={styles.contentBlock}>
                                                 <Text style={styles.sectionTitle}>Patient Education</Text>
                                                 <Text style={styles.sectionContent}>
@@ -204,8 +216,7 @@ const styles = StyleSheet.create({
         height: 400,
         alignSelf: "center",
         marginBottom: spacing.md,
-        perspective: 1200,
-    },
+    } as any,
 
     absoluteCard: {
         position: "absolute",
@@ -281,53 +292,57 @@ const styles = StyleSheet.create({
 
     backContent: {
         flex: 1,
-        justifyContent: "center",
     },
 
     sectionsContainer: {
         flex: 1,
-        justifyContent: "space-evenly",
         paddingVertical: spacing.sm,
-        alignItems: "center",
+        paddingHorizontal: spacing.sm,
+        justifyContent: "flex-start",
     },
 
+    sectionsContainerSpread: {
+        justifyContent: "space-evenly",
+    },
+    
     contentBlock: {
-        marginBottom: spacing.lg,
+        marginBottom: spacing.sm,
         flexShrink: 1,
         width: "100%",
-        alignItems: "center",
+    },
+
+    contentBlockSpread: {
+        marginBottom: spacing.lg,
     },
 
     sectionTitle: {
-        fontSize: 14,
+        fontSize: 13,
         fontWeight: "700",
         color: cardColors.accent,
-        letterSpacing: 0.3,
-        marginBottom: 2,
+        letterSpacing: 0.5,
+        marginBottom: 1,
         flexShrink: 0,
-        textAlign: "center",
+        textAlign: "left",
     },
 
     sectionContent: {
-        fontSize: 14,
-        lineHeight: 21,
+        fontSize: 13,
+        lineHeight: 20,
         color: cardColors.textPrimary,
         flexShrink: 1,
-        textAlign: "center",
+        textAlign: "left",
+        marginTop: 0,
     },
 
     dosageRow: {
         flexDirection: "row",
-        gap: spacing.md,
-        marginBottom: spacing.lg,
+        gap: spacing.sm,
+        marginBottom: spacing.md,
         width: "100%",
-        justifyContent: "center",
     },
 
     dosageBlock: {
         flex: 1,
         flexShrink: 1,
-        alignItems: "center",
-        maxWidth: "33%",
     },
 });
