@@ -101,7 +101,7 @@ export default function FlashCard({ drug, resetFlip = false }: FlashCardProps) {
                         <View style={styles.backContent}>
                             <View style={styles.sectionsContainer}>
                                 {/* Mechanism Section */}
-                                <View style={styles.section}>
+                                <View style={styles.contentBlock}>
                                     <Text style={styles.sectionTitle}>Mechanism</Text>
                                     <Text style={styles.sectionContent}>
                                         {safe(drug.mechanism)}
@@ -109,7 +109,7 @@ export default function FlashCard({ drug, resetFlip = false }: FlashCardProps) {
                                 </View>
 
                                 {/* Indications Section */}
-                                <View style={styles.section}>
+                                <View style={styles.contentBlock}>
                                     <Text style={styles.sectionTitle}>Indications</Text>
                                     <Text style={styles.sectionContent}>
                                         {safe(drug.indications)}
@@ -117,7 +117,7 @@ export default function FlashCard({ drug, resetFlip = false }: FlashCardProps) {
                                 </View>
 
                                 {/* Contraindications Section */}
-                                <View style={styles.section}>
+                                <View style={styles.contentBlock}>
                                     <Text style={styles.sectionTitle}>Contraindications</Text>
                                     <Text style={styles.sectionContent}>
                                         {safe(drug.contraindications)}
@@ -131,7 +131,7 @@ export default function FlashCard({ drug, resetFlip = false }: FlashCardProps) {
                                     {(drug.adultDose || drug.pediatricDose || drug.routes?.length > 0) && (
                                         <View style={styles.dosageRow}>
                                             {drug.adultDose && (
-                                                <View style={[styles.section, styles.dosageSection]}>
+                                                <View style={styles.dosageBlock}>
                                                     <Text style={styles.sectionTitle}>Adult Dose</Text>
                                                     <Text style={styles.sectionContent}>
                                                         {drug.adultDose}
@@ -140,7 +140,7 @@ export default function FlashCard({ drug, resetFlip = false }: FlashCardProps) {
                                             )}
 
                                             {drug.pediatricDose && (
-                                                <View style={[styles.section, styles.dosageSection]}>
+                                                <View style={styles.dosageBlock}>
                                                     <Text style={styles.sectionTitle}>Pediatric Dose</Text>
                                                     <Text style={styles.sectionContent}>
                                                         {drug.pediatricDose}
@@ -149,7 +149,7 @@ export default function FlashCard({ drug, resetFlip = false }: FlashCardProps) {
                                             )}
 
                                             {drug.routes?.length > 0 && (
-                                                <View style={[styles.section, styles.dosageSection]}>
+                                                <View style={styles.dosageBlock}>
                                                     <Text style={styles.sectionTitle}>Routes</Text>
                                                     <Text style={styles.sectionContent}>
                                                         {safe(drug.routes)}
@@ -165,7 +165,7 @@ export default function FlashCard({ drug, resetFlip = false }: FlashCardProps) {
                                 {isRnStyleDrug(drug) && (
                                     <>
                                         {drug.interactions?.length > 0 && (
-                                            <View style={styles.section}>
+                                            <View style={styles.contentBlock}>
                                                 <Text style={styles.sectionTitle}>Interactions</Text>
                                                 <Text style={styles.sectionContent}>
                                                     {safe(drug.interactions)}
@@ -174,7 +174,7 @@ export default function FlashCard({ drug, resetFlip = false }: FlashCardProps) {
                                         )}
 
                                         {drug.education?.length > 0 && (
-                                            <View style={styles.section}>
+                                            <View style={styles.contentBlock}>
                                                 <Text style={styles.sectionTitle}>Patient Education</Text>
                                                 <Text style={styles.sectionContent}>
                                                     {safe(drug.education)}
@@ -286,47 +286,48 @@ const styles = StyleSheet.create({
 
     sectionsContainer: {
         flex: 1,
-        justifyContent: "flex-start",
-        paddingVertical: spacing.xs,
-        gap: spacing.xs,
+        justifyContent: "space-evenly",
+        paddingVertical: spacing.sm,
+        alignItems: "center",
     },
 
-    section: {
-        backgroundColor: "rgba(61, 106, 159, 0.08)",
-        borderRadius: 8,
-        padding: spacing.xs + 2,
-        borderLeftWidth: 3,
-        borderLeftColor: cardColors.accent,
+    contentBlock: {
+        marginBottom: spacing.lg,
         flexShrink: 1,
-        minHeight: 0,
-        marginBottom: spacing.xs,
+        width: "100%",
+        alignItems: "center",
     },
 
     sectionTitle: {
-        fontSize: 13,
+        fontSize: 14,
         fontWeight: "700",
         color: cardColors.accent,
         letterSpacing: 0.3,
-        marginBottom: spacing.xs,
+        marginBottom: 2,
         flexShrink: 0,
+        textAlign: "center",
     },
 
     sectionContent: {
-        fontSize: 12,
-        lineHeight: 18,
+        fontSize: 14,
+        lineHeight: 21,
         color: cardColors.textPrimary,
         flexShrink: 1,
-        flexWrap: "wrap",
+        textAlign: "center",
     },
 
     dosageRow: {
         flexDirection: "row",
-        gap: spacing.xs,
-        marginBottom: spacing.xs,
+        gap: spacing.md,
+        marginBottom: spacing.lg,
+        width: "100%",
+        justifyContent: "center",
     },
 
-    dosageSection: {
+    dosageBlock: {
         flex: 1,
-        marginBottom: 0,
+        flexShrink: 1,
+        alignItems: "center",
+        maxWidth: "33%",
     },
 });
