@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import Animated, {
     useAnimatedStyle,
     useSharedValue,
@@ -98,11 +98,16 @@ export default function FlashCard({ drug, resetFlip = false }: FlashCardProps) {
                 {/* ---------- BACK ---------- */}
                 <Animated.View style={[styles.absoluteCard, backStyle]}>
                     <View style={styles.card}>
-                        <View style={styles.backContent}>
-                            <View style={[
-                                styles.sectionsContainer,
-                                !isRnStyleDrug(drug) && styles.sectionsContainerSpread
-                            ]}>
+                        <View style={styles.scrollContainer}>
+                            <ScrollView
+                                style={styles.scrollView}
+                                contentContainerStyle={[
+                                    styles.sectionsContainer,
+                                    !isRnStyleDrug(drug) && styles.sectionsContainerSpread
+                                ]}
+                                showsVerticalScrollIndicator={false}
+                                bounces={false}
+                            >
                                 {/* Mechanism Section */}
                                 <View style={[
                                     styles.contentBlock,
@@ -195,7 +200,7 @@ export default function FlashCard({ drug, resetFlip = false }: FlashCardProps) {
                                         )}
                                     </>
                                 )}
-                            </View>
+                            </ScrollView>
                         </View>
                     </View>
                 </Animated.View>
@@ -290,18 +295,22 @@ const styles = StyleSheet.create({
         letterSpacing: 0.3,
     },
 
-    backContent: {
+    scrollContainer: {
+        flex: 1,
+    },
+
+    scrollView: {
         flex: 1,
     },
 
     sectionsContainer: {
-        flex: 1,
         paddingVertical: spacing.sm,
         paddingHorizontal: spacing.sm,
-        justifyContent: "flex-start",
+        paddingBottom: spacing.md,
     },
 
     sectionsContainerSpread: {
+        flexGrow: 1,
         justifyContent: "space-evenly",
     },
     
