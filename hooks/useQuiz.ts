@@ -1,6 +1,7 @@
 // hooks/useQuiz.ts
 import { useEffect, useMemo, useState } from "react";
 import type { Drug } from "./getDrugs";
+import type { CriticalThinkingQuestion } from "./useCriticalThinkingQuestions";
 
 // ---------------------
 // QUESTION GENERATOR
@@ -189,62 +190,113 @@ function generateQuestion(drug: Drug, allDrugs: Drug[]): Question | null {
 // ---------------------
 
 export type QuizAnswer = {
-    drug: Drug;
+    drug?: Drug;
     question: string;
     correctAnswer: string;
     userAnswer: string;
     choices: string[];
     isCorrect: boolean;
+    isCriticalThinking?: boolean;
+    rationale?: string;
+    clinicalPearl?: string;
+    medication?: string;
 };
 
-export function useQuiz(drugs: Drug[], questionCount: number = 10) {
+export function useQuiz(
+    drugs: Drug[],
+    questionCount: number = 10,
+    criticalThinkingQuestions: CriticalThinkingQuestion[] = []
+) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [score, setScore] = useState(0);
     const [finished, setFinished] = useState(false);
     const [answers, setAnswers] = useState<QuizAnswer[]>([]);
 
     const questions = useMemo(() => {
-        if (!drugs || drugs.length === 0) {
-            return [];
-        }
+        const allQuestions: Array<{
+            drug?: Drug;
+            question: string;
+            correct: string;
+            choices: string[];
+            isCriticalThinking?: boolean;
+            rationale?: string;
+            clinicalPearl?: string;
+            medication?: string;
+        }> = [];
 
-        // Filter to only drugs that can generate questions
-        const validDrugs = drugs.filter(drug => 
-            drug.class && 
-            drug.mechanism && 
-            drug.indications?.length && 
-            drug.contraindications?.length
-        );
+        // Generate regular questions from drugs
+        if (drugs && drugs.length > 0) {
+            const validDrugs = drugs.filter(
+                (drug) =>
+                    drug.class &&
+                    drug.mechanism &&
+                    drug.indications?.length &&
+                    drug.contraindications?.length
+            );
 
-        if (validDrugs.length === 0) {
-            return [];
-        }
+            if (validDrugs.length > 0) {
+                const generatedQuestions: Array<{
+                    drug: Drug;
+                    question: string;
+                    correct: string;
+                    choices: string[];
+                }> = [];
+                const maxAttempts = questionCount * 10;
+                let attempts = 0;
 
-        // Generate questions by looping through drugs until we reach questionCount
-        // Each iteration can generate a different random question from the same drug
-        const generatedQuestions: Array<{ drug: Drug; question: string; correct: string; choices: string[] }> = [];
-        const maxAttempts = questionCount * 10; // Safety limit to prevent infinite loops
-        let attempts = 0;
+                while (
+                    generatedQuestions.length < questionCount &&
+                    attempts < maxAttempts
+                ) {
+                    attempts++;
+                    const randomDrug =
+                        validDrugs[
+                            Math.floor(Math.random() * validDrugs.length)
+                        ];
+                    const question = generateQuestion(randomDrug, drugs);
 
-        while (generatedQuestions.length < questionCount && attempts < maxAttempts) {
-            attempts++;
-            
-            // Randomly select a drug (with replacement, so we can use the same drug multiple times)
-            const randomDrug = validDrugs[Math.floor(Math.random() * validDrugs.length)];
-            
-            // Generate a random question from this drug
-            const question = generateQuestion(randomDrug, drugs);
-            
-            if (question) {
-                generatedQuestions.push({
-                    drug: randomDrug,
-                    ...question,
-                });
+                    if (question) {
+                        generatedQuestions.push({
+                            drug: randomDrug,
+                            ...question,
+                        });
+                    }
+                }
+
+                allQuestions.push(...generatedQuestions);
             }
         }
 
-        return generatedQuestions;
-    }, [drugs, questionCount]);
+        // Add critical thinking questions if provided
+        if (criticalThinkingQuestions.length > 0) {
+            const shuffledCritical = [...criticalThinkingQuestions].sort(
+                () => Math.random() - 0.5
+            );
+            const criticalToAdd = shuffledCritical.slice(
+                0,
+                Math.min(
+                    Math.floor(questionCount * 0.3),
+                    shuffledCritical.length
+                )
+            );
+
+            criticalToAdd.forEach((ctq) => {
+                allQuestions.push({
+                    question: ctq.stem,
+                    correct: ctq.correctAnswer,
+                    choices: ctq.choices,
+                    isCriticalThinking: true,
+                    rationale: ctq.rationale,
+                    clinicalPearl: ctq.clinicalPearl,
+                    medication: ctq.medication,
+                });
+            });
+        }
+
+        // Shuffle all questions together and limit to questionCount
+        const shuffled = allQuestions.sort(() => Math.random() - 0.5);
+        return shuffled.slice(0, questionCount);
+    }, [drugs, questionCount, criticalThinkingQuestions]);
 
     // Reset quiz state when questions change (drugs or questionCount changes)
     useEffect(() => {
@@ -252,7 +304,7 @@ export function useQuiz(drugs: Drug[], questionCount: number = 10) {
         setScore(0);
         setFinished(false);
         setAnswers([]);
-    }, [drugs, questionCount]);
+    }, [drugs, questionCount, criticalThinkingQuestions]);
 
     const current = questions[currentIndex];
 
@@ -276,6 +328,10 @@ export function useQuiz(drugs: Drug[], questionCount: number = 10) {
                 userAnswer: answer,
                 choices: current.choices,
                 isCorrect,
+                isCriticalThinking: current.isCriticalThinking,
+                rationale: current.rationale,
+                clinicalPearl: current.clinicalPearl,
+                medication: current.medication,
             };
             return newAnswers;
         });
@@ -302,5 +358,9 @@ export function useQuiz(drugs: Drug[], questionCount: number = 10) {
         score,
         answers, // All answers for review
         hasAnswered: false, // Removed - QuizCard manages this state
+        isCriticalThinking: current?.isCriticalThinking,
+        rationale: current?.rationale,
+        clinicalPearl: current?.clinicalPearl,
+        medication: current?.medication,
     };
 }

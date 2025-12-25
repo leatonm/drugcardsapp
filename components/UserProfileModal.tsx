@@ -26,11 +26,12 @@ export default function UserProfileModal({
     visible,
     onClose,
 }: UserProfileModalProps) {
-    const { user, logout } = useAuth();
+    const { user, logout, upgradeToPremium } = useAuth();
     const { scope } = useUserScope();
     const router = useRouter();
     const [exportScope, setExportScope] = useState<UserScope>(scope);
     const [exportModalVisible, setExportModalVisible] = useState(false);
+    const [upgradeModalVisible, setUpgradeModalVisible] = useState(false);
     const { drugs } = useDrugs(exportScope);
 
     const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -57,14 +58,27 @@ export default function UserProfileModal({
     }, [visible]);
 
     const handleUpgrade = () => {
-        // Placeholder for upgrade functionality
-        // In the future, this would open a payment/subscription flow
-        alert("Upgrade feature coming soon! This will allow you to access premium features.");
-        onClose();
+        // Show upgrade modal with features and pricing
+        setUpgradeModalVisible(true);
     };
 
     const handleExport = () => {
+        // Check if user has premium access
+        if (user.membershipTier !== "premium") {
+            alert("Export drug cards is a Premium feature. Upgrade to access this feature!");
+            setUpgradeModalVisible(true);
+            return;
+        }
         setExportModalVisible(true);
+    };
+
+    const handlePurchase = () => {
+        // In production, this would integrate with payment system (Stripe, RevenueCat, etc.)
+        // For now, simulate upgrade
+        upgradeToPremium();
+        setUpgradeModalVisible(false);
+        alert("Thank you for upgrading to Premium! All features are now unlocked.");
+        onClose();
     };
 
     const exportToCSV = () => {
@@ -319,6 +333,72 @@ export default function UserProfileModal({
                     </View>
                 </View>
             </Modal>
+
+            {/* Upgrade Modal */}
+            <Modal
+                visible={upgradeModalVisible}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setUpgradeModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.upgradeModal}>
+                        <Text style={styles.upgradeTitle}>Upgrade to Premium</Text>
+                        <Text style={styles.upgradePrice}>$4.99/month</Text>
+
+                        <View style={styles.featuresList}>
+                            <View style={styles.featureItem}>
+                                <Text style={styles.featureIcon}>✓</Text>
+                                <Text style={styles.featureText}>
+                                    Unlimited quiz questions (10+ per quiz)
+                                </Text>
+                            </View>
+                            <View style={styles.featureItem}>
+                                <Text style={styles.featureIcon}>✓</Text>
+                                <Text style={styles.featureText}>
+                                    Critical Thinking Questions
+                                </Text>
+                            </View>
+                            <View style={styles.featureItem}>
+                                <Text style={styles.featureIcon}>✓</Text>
+                                <Text style={styles.featureText}>
+                                    Export drug cards (CSV/PDF)
+                                </Text>
+                            </View>
+                            <View style={styles.featureItem}>
+                                <Text style={styles.featureIcon}>✓</Text>
+                                <Text style={styles.featureText}>
+                                    No ads - uninterrupted studying
+                                </Text>
+                            </View>
+                            <View style={styles.featureItem}>
+                                <Text style={styles.featureIcon}>✓</Text>
+                                <Text style={styles.featureText}>
+                                    Full access to all features
+                                </Text>
+                            </View>
+                        </View>
+
+                        <Pressable
+                            style={styles.purchaseButton}
+                            onPress={handlePurchase}
+                        >
+                            <Text style={styles.purchaseButtonText}>
+                                Subscribe for $4.99/month
+                            </Text>
+                        </Pressable>
+
+                        <Pressable
+                            style={styles.cancelUpgradeButton}
+                            onPress={() => setUpgradeModalVisible(false)}
+                        >
+                            <Text style={styles.cancelUpgradeButtonText}>
+                                Maybe Later
+                            </Text>
+                        </Pressable>
+                    </View>
+                </View>
+            </Modal>
         </>
     );
 }
@@ -523,6 +603,77 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     cancelButtonText: {
+        color: colors.textMuted,
+        fontSize: 14,
+        fontWeight: "600",
+    },
+
+    upgradeModal: {
+        width: "85%",
+        maxWidth: 400,
+        backgroundColor: colors.background,
+        borderRadius: 20,
+        padding: spacing.lg,
+        borderWidth: 2,
+        borderColor: colors.accent,
+    },
+    upgradeTitle: {
+        fontSize: 24,
+        fontWeight: "800",
+        color: colors.textPrimary,
+        textAlign: "center",
+        marginBottom: spacing.xs,
+    },
+    upgradePrice: {
+        fontSize: 32,
+        fontWeight: "900",
+        color: colors.accent,
+        textAlign: "center",
+        marginBottom: spacing.lg,
+    },
+    featuresList: {
+        marginBottom: spacing.lg,
+    },
+    featureItem: {
+        flexDirection: "row",
+        alignItems: "flex-start",
+        marginBottom: spacing.sm,
+    },
+    featureIcon: {
+        fontSize: 18,
+        fontWeight: "700",
+        color: "#00C98B",
+        marginRight: spacing.sm,
+        marginTop: 2,
+    },
+    featureText: {
+        flex: 1,
+        fontSize: 15,
+        color: colors.textPrimary,
+        lineHeight: 22,
+    },
+    purchaseButton: {
+        backgroundColor: colors.accent,
+        paddingVertical: spacing.md,
+        borderRadius: 16,
+        alignItems: "center",
+        marginBottom: spacing.sm,
+        shadowColor: "#000",
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: 4,
+    },
+    purchaseButtonText: {
+        color: colors.buttonText,
+        fontSize: 18,
+        fontWeight: "700",
+    },
+    cancelUpgradeButton: {
+        paddingVertical: spacing.sm,
+        alignItems: "center",
+    },
+    cancelUpgradeButtonText: {
         color: colors.textMuted,
         fontSize: 14,
         fontWeight: "600",

@@ -2,8 +2,10 @@ import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import type { Drug } from "../hooks/getDrugs";
+import { useCriticalThinkingQuestions } from "../hooks/useCriticalThinkingQuestions";
 import { useQuiz } from "../hooks/useQuiz";
 import { useStatistics } from "../hooks/useStatistics";
+import { useUserScope } from "../hooks/useUserScope";
 import { colors } from "../styles/colors";
 import { spacing } from "../styles/spacing";
 import { typography } from "../styles/typography";
@@ -12,11 +14,14 @@ interface Props {
     drugs: Drug[];
     start: boolean;
     questionCount?: number;
+    includeCriticalThinking?: boolean;
 }
 
-export default function QuizCard({ drugs, start, questionCount = 10 }: Props) {
+export default function QuizCard({ drugs, start, questionCount = 10, includeCriticalThinking = false }: Props) {
     const router = useRouter();
-    const quiz = useQuiz(drugs, questionCount);
+    const { scope } = useUserScope();
+    const { questions: criticalQuestions } = useCriticalThinkingQuestions(scope);
+    const quiz = useQuiz(drugs, questionCount, includeCriticalThinking ? criticalQuestions : []);
     const { recordQuiz } = useStatistics();
     const [selected, setSelected] = useState<string | null>(null);
     const [statsRecorded, setStatsRecorded] = useState(false);
@@ -25,6 +30,7 @@ export default function QuizCard({ drugs, start, questionCount = 10 }: Props) {
     // Reset quiz when starting
     useEffect(() => {
         setSelected(null);
+        setShowRationale(false);
         fadeAnim.setValue(0);
     }, [start]);
 
@@ -32,6 +38,7 @@ export default function QuizCard({ drugs, start, questionCount = 10 }: Props) {
     useEffect(() => {
         if (!start) return;
         setSelected(null);
+        setShowRationale(false);
         fadeAnim.setValue(0);
         Animated.timing(fadeAnim, {
             toValue: 1,
@@ -68,16 +75,23 @@ export default function QuizCard({ drugs, start, questionCount = 10 }: Props) {
                         </Text>
                     </View>
 
-                    {/* 🔵 DRUG NAME — now FIRST and larger */}
-                    <Text style={styles.drugName}>
-                        {quiz.currentDrug?.name.generic ?? "N/A"}
-                    </Text>
-
-                    {/* Optional brand name */}
-                    {quiz.currentDrug?.name.brand?.length > 0 && (
-                        <Text style={styles.brandName}>
-                            {quiz.currentDrug.name.brand.join(", ")}
+                    {/* 🔵 DRUG/MEDICATION NAME — now FIRST and larger */}
+                    {quiz.isCriticalThinking ? (
+                        <Text style={styles.drugName}>
+                            {quiz.medication ?? "N/A"}
                         </Text>
+                    ) : (
+                        <>
+                            <Text style={styles.drugName}>
+                                {quiz.currentDrug?.name.generic ?? "N/A"}
+                            </Text>
+                            {/* Optional brand name */}
+                            {quiz.currentDrug?.name.brand?.length > 0 && (
+                                <Text style={styles.brandName}>
+                                    {quiz.currentDrug.name.brand.join(", ")}
+                                </Text>
+                            )}
+                        </>
                     )}
 
                     {/* Question under drug name */}
@@ -96,6 +110,9 @@ export default function QuizCard({ drugs, start, questionCount = 10 }: Props) {
                                         if (!answered) {
                                             setSelected(choice);
                                             quiz.selectAnswer(choice);
+                                            if (quiz.isCriticalThinking) {
+                                                setShowRationale(true);
+                                            }
                                         }
                                     }}
                                     style={[
@@ -109,6 +126,20 @@ export default function QuizCard({ drugs, start, questionCount = 10 }: Props) {
                             );
                         })}
                     </View>
+
+                    {/* Rationale and Clinical Pearl for Critical Thinking Questions */}
+                    {answered && showRationale && quiz.isCriticalThinking && (
+                        <View style={styles.feedbackBox}>
+                            <Text style={styles.rationaleTitle}>Rationale:</Text>
+                            <Text style={styles.rationaleText}>
+                                {quiz.rationale}
+                            </Text>
+                            <Text style={styles.pearlTitle}>Clinical Pearl:</Text>
+                            <Text style={styles.pearlText}>
+                                {quiz.clinicalPearl}
+                            </Text>
+                        </View>
+                    )}
                 </View>
 
                 {/* NEXT QUESTION BUTTON */}
@@ -117,6 +148,7 @@ export default function QuizCard({ drugs, start, questionCount = 10 }: Props) {
                         style={styles.nextButton}
                         onPress={() => {
                             setSelected(null);
+                            setShowRationale(false);
                             quiz.next();
                         }}
                     >
@@ -392,4 +424,35 @@ const styles = StyleSheet.create({
         letterSpacing: 0.5,
     },
 
+    feedbackBox: {
+        backgroundColor: "rgba(61, 106, 159, 0.1)",
+        borderRadius: 12,
+        padding: spacing.md,
+        marginTop: spacing.md,
+        borderLeftWidth: 3,
+        borderLeftColor: colors.accent,
+    },
+    rationaleTitle: {
+        fontSize: 14,
+        fontWeight: "700",
+        color: colors.accent,
+        marginBottom: spacing.xs,
+    },
+    rationaleText: {
+        fontSize: 13,
+        color: "#E0E5EB",
+        lineHeight: 20,
+        marginBottom: spacing.sm,
+    },
+    pearlTitle: {
+        fontSize: 14,
+        fontWeight: "700",
+        color: colors.accent,
+        marginBottom: spacing.xs,
+    },
+    pearlText: {
+        fontSize: 13,
+        color: "#E0E5EB",
+        lineHeight: 20,
+    },
 });

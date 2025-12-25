@@ -1,14 +1,16 @@
 // app/quiz/index.tsx
-import React from "react";
-import { View, Text, Pressable, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
+import React from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import AppHeader from "../../components/AppHeader";
+import { useAuth } from "../../hooks/useAuth";
 import { colors } from "../../styles/colors";
 import { spacing } from "../../styles/spacing";
 import { typography } from "../../styles/typography";
 
 export default function QuizHome() {
     const router = useRouter();
+    const { user } = useAuth();
 
     return (
         <View style={styles.container}>
@@ -143,5 +145,10 @@ const styles = StyleSheet.create({
         color: colors.buttonText,
         fontSize: 16,
         fontWeight: "700",
+    },
+
+    premiumButton: {
+        borderWidth: 2,
+        borderColor: colors.accent,
     },
 });

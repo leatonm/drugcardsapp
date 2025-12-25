@@ -1,20 +1,20 @@
 // app/quiz/filtered/index.tsx
-import React, { useState, useMemo } from "react";
-import {
-    View,
-    Text,
-    TouchableOpacity,
-    StyleSheet,
-    Modal,
-    ScrollView,
-    Pressable,
-} from "react-native";
 import { useRouter } from "expo-router";
-import { useDrugs } from "../../../hooks/getDrugs";
-import { useUserScope } from "../../../hooks/useUserScope";
-import { spacing } from "../../../styles/spacing";
-import { colors } from "../../../styles/colors";
+import React, { useMemo, useState } from "react";
+import {
+    Modal,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View
+} from "react-native";
 import AppHeader from "../../../components/AppHeader";
+import { useDrugs } from "../../../hooks/getDrugs";
+import { useAuth } from "../../../hooks/useAuth";
+import { useUserScope } from "../../../hooks/useUserScope";
+import { colors } from "../../../styles/colors";
+import { spacing } from "../../../styles/spacing";
 
 // Category mapping
 export const CATEGORY_MAP: Record<string, string[]> = {
@@ -147,12 +147,20 @@ const QUESTION_COUNTS = [10, 20, 40, 50];
 
 export default function FilteredQuiz() {
     const router = useRouter();
+    const { user } = useAuth();
     const { scope } = useUserScope();
     const { drugs, loading } = useDrugs(scope);
 
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [modalVisible, setModalVisible] = useState(false);
     const [questionCount, setQuestionCount] = useState<number>(10);
+    const [includeCriticalThinking, setIncludeCriticalThinking] = useState(false);
+
+    // Free users limited to 10 questions
+    const availableQuestionCounts =
+        user.membershipTier === "premium"
+            ? QUESTION_COUNTS
+            : [10];
 
     if (loading) {
         return <Text style={styles.loading}>Loading...</Text>;
@@ -177,6 +185,7 @@ export default function FilteredQuiz() {
                 data: JSON.stringify(filteredDrugs), 
                 start: "true",
                 questionCount: questionCount.toString(),
+                includeCriticalThinking: includeCriticalThinking.toString(),
             },
         });
     };
@@ -206,27 +215,63 @@ export default function FilteredQuiz() {
 
                 {/* Question Count Selector */}
                 <Text style={styles.label}>Number of Questions:</Text>
+                {user.membershipTier !== "premium" && (
+                    <Text style={styles.freeLimitText}>
+                        Free users limited to 10 questions. Upgrade for more!
+                    </Text>
+                )}
                 <View style={styles.questionCountContainer}>
-                    {QUESTION_COUNTS.map((count) => (
-                        <Pressable
-                            key={count}
-                            onPress={() => setQuestionCount(count)}
-                            style={[
-                                styles.countButton,
-                                questionCount === count && styles.countButtonSelected,
-                            ]}
-                        >
-                            <Text
+                    {QUESTION_COUNTS.map((count) => {
+                        const isAvailable = availableQuestionCounts.includes(count);
+                        return (
+                            <Pressable
+                                key={count}
+                                onPress={() => {
+                                    if (isAvailable) {
+                                        setQuestionCount(count);
+                                    } else {
+                                        router.push("/home");
+                                    }
+                                }}
                                 style={[
-                                    styles.countButtonText,
-                                    questionCount === count && styles.countButtonTextSelected,
+                                    styles.countButton,
+                                    questionCount === count && styles.countButtonSelected,
+                                    !isAvailable && styles.countButtonLocked,
                                 ]}
                             >
-                                {count}
+                                <Text
+                                    style={[
+                                        styles.countButtonText,
+                                        questionCount === count && styles.countButtonTextSelected,
+                                        !isAvailable && styles.countButtonTextLocked,
+                                    ]}
+                                >
+                                    {count}
+                                    {!isAvailable && " ⭐"}
+                                </Text>
+                            </Pressable>
+                        );
+                    })}
+                </View>
+
+                {/* Critical Thinking Checkbox - Premium Only */}
+                {user.membershipTier === "premium" && (
+                    <View style={styles.checkboxContainer}>
+                        <Pressable
+                            style={styles.checkbox}
+                            onPress={() =>
+                                setIncludeCriticalThinking(!includeCriticalThinking)
+                            }
+                        >
+                            <Text style={styles.checkboxIcon}>
+                                {includeCriticalThinking ? "☑" : "☐"}
+                            </Text>
+                            <Text style={styles.checkboxLabel}>
+                                Include Critical Thinking Questions
                             </Text>
                         </Pressable>
-                    ))}
-                </View>
+                    </View>
+                )}
 
                 {/* Start Quiz */}
                 <Pressable
@@ -483,5 +528,44 @@ const styles = StyleSheet.create({
 
     countButtonTextSelected: {
         color: colors.buttonText,
+    },
+
+    countButtonLocked: {
+        opacity: 0.5,
+    },
+
+    countButtonTextLocked: {
+        color: colors.textMuted,
+    },
+
+    freeLimitText: {
+        fontSize: 12,
+        color: colors.textMuted,
+        textAlign: "center",
+        marginBottom: spacing.xs,
+        fontStyle: "italic",
+    },
+
+    checkboxContainer: {
+        marginTop: spacing.md,
+        marginBottom: spacing.sm,
+    },
+
+    checkbox: {
+        flexDirection: "row",
+        alignItems: "center",
+        padding: spacing.sm,
+    },
+
+    checkboxIcon: {
+        fontSize: 20,
+        marginRight: spacing.sm,
+        color: colors.accent,
+    },
+
+    checkboxLabel: {
+        fontSize: 14,
+        color: colors.textPrimary,
+        fontWeight: "600",
     },
 });

@@ -1,20 +1,29 @@
 // app/quiz/random/index.tsx
-import React, { useMemo, useState } from "react";
-import { View, StyleSheet, Text, Pressable } from "react-native";
 import { useRouter } from "expo-router";
-import { useDrugs } from "../../../hooks/getDrugs";
-import { useUserScope } from "../../../hooks/useUserScope";
-import { spacing } from "../../../styles/spacing";
-import { colors } from "../../../styles/colors";
+import React, { useMemo, useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import AppHeader from "../../../components/AppHeader";
+import { useDrugs } from "../../../hooks/getDrugs";
+import { useAuth } from "../../../hooks/useAuth";
+import { useUserScope } from "../../../hooks/useUserScope";
+import { colors } from "../../../styles/colors";
+import { spacing } from "../../../styles/spacing";
 
 const QUESTION_COUNTS = [10, 20, 40, 50];
 
 export default function RandomQuiz() {
     const router = useRouter();
+    const { user } = useAuth();
     const { scope } = useUserScope();
     const { drugs, loading } = useDrugs(scope);
     const [questionCount, setQuestionCount] = useState<number>(10);
+    const [includeCriticalThinking, setIncludeCriticalThinking] = useState(false);
+
+    // Free users limited to 10 questions
+    const availableQuestionCounts =
+        user.membershipTier === "premium"
+            ? QUESTION_COUNTS
+            : [10];
 
     if (loading) {
         return <Text style={styles.loading}>Loading...</Text>;
@@ -32,6 +41,7 @@ export default function RandomQuiz() {
                 data: JSON.stringify(randomDrugs),
                 start: "true",
                 questionCount: questionCount.toString(),
+                includeCriticalThinking: includeCriticalThinking.toString(),
             },
         });
     };
@@ -51,26 +61,43 @@ export default function RandomQuiz() {
 
                 {/* Question Count Selector */}
                 <Text style={styles.label}>Number of Questions:</Text>
+                {user.membershipTier !== "premium" && (
+                    <Text style={styles.freeLimitText}>
+                        Free users limited to 10 questions. Upgrade for more!
+                    </Text>
+                )}
                 <View style={styles.questionCountContainer}>
-                    {QUESTION_COUNTS.map((count) => (
-                        <Pressable
-                            key={count}
-                            onPress={() => setQuestionCount(count)}
-                            style={[
-                                styles.countButton,
-                                questionCount === count && styles.countButtonSelected,
-                            ]}
-                        >
-                            <Text
+                    {QUESTION_COUNTS.map((count) => {
+                        const isAvailable = availableQuestionCounts.includes(count);
+                        return (
+                            <Pressable
+                                key={count}
+                                onPress={() => {
+                                    if (isAvailable) {
+                                        setQuestionCount(count);
+                                    } else {
+                                        router.push("/home");
+                                    }
+                                }}
                                 style={[
-                                    styles.countButtonText,
-                                    questionCount === count && styles.countButtonTextSelected,
+                                    styles.countButton,
+                                    questionCount === count && styles.countButtonSelected,
+                                    !isAvailable && styles.countButtonLocked,
                                 ]}
                             >
-                                {count}
-                            </Text>
-                        </Pressable>
-                    ))}
+                                <Text
+                                    style={[
+                                        styles.countButtonText,
+                                        questionCount === count && styles.countButtonTextSelected,
+                                        !isAvailable && styles.countButtonTextLocked,
+                                    ]}
+                                >
+                                    {count}
+                                    {!isAvailable && " ⭐"}
+                                </Text>
+                            </Pressable>
+                        );
+                    })}
                 </View>
 
                 {/* Start Quiz */}
@@ -221,5 +248,44 @@ const styles = StyleSheet.create({
 
     countButtonTextSelected: {
         color: colors.buttonText,
+    },
+
+    countButtonLocked: {
+        opacity: 0.5,
+    },
+
+    countButtonTextLocked: {
+        color: colors.textMuted,
+    },
+
+    freeLimitText: {
+        fontSize: 12,
+        color: colors.textMuted,
+        textAlign: "center",
+        marginBottom: spacing.xs,
+        fontStyle: "italic",
+    },
+
+    checkboxContainer: {
+        marginTop: spacing.md,
+        marginBottom: spacing.sm,
+    },
+
+    checkbox: {
+        flexDirection: "row",
+        alignItems: "center",
+        padding: spacing.sm,
+    },
+
+    checkboxIcon: {
+        fontSize: 20,
+        marginRight: spacing.sm,
+        color: colors.accent,
+    },
+
+    checkboxLabel: {
+        fontSize: 14,
+        color: colors.textPrimary,
+        fontWeight: "600",
     },
 });

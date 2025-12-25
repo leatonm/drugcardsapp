@@ -1,19 +1,58 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import AdPlaceholder from "../../../components/AdPlaceholder";
 import FlashCard from "../../../components/FlashCard";
+import { useAuth } from "../../../hooks/useAuth";
 import { colors } from "../../../styles/colors";
 import { spacing } from "../../../styles/spacing";
 
 export default function FlashcardViewer() {
     const router = useRouter();
     const { data } = useLocalSearchParams();
+    const { user } = useAuth();
 
     const drugs = JSON.parse(data as string);
     const [index, setIndex] = useState(0);
+    const [adVisible, setAdVisible] = useState(false);
+    const [viewedCount, setViewedCount] = useState(0);
 
-    const next = () => index < drugs.length - 1 && setIndex(index + 1);
-    const prev = () => index > 0 && setIndex(index - 1);
+    const next = () => {
+        if (index < drugs.length - 1) {
+            const newIndex = index + 1;
+            setIndex(newIndex);
+            handleCardView(newIndex);
+        }
+    };
+    const prev = () => {
+        if (index > 0) {
+            const newIndex = index - 1;
+            setIndex(newIndex);
+            handleCardView(newIndex);
+        }
+    };
+
+    // Track card views and show ads for free users
+    const handleCardView = (cardIndex: number) => {
+        if (user.membershipTier === "premium") return; // No ads for premium
+
+        const newCount = viewedCount + 1;
+        setViewedCount(newCount);
+
+        // Show ad after every 10 cards viewed
+        if (newCount % 10 === 0) {
+            setAdVisible(true);
+        }
+    };
+
+    // Track initial view
+    useEffect(() => {
+        handleCardView(0);
+    }, []);
+
+    const closeAd = () => {
+        setAdVisible(false);
+    };
 
     return (
         <View style={styles.container}>
@@ -67,9 +106,13 @@ export default function FlashcardViewer() {
                     <Text style={styles.exitText}>Exit Study Session</Text>
                 </Pressable>
             </ScrollView>
+
+            {/* Ad Modal - Only for free users */}
+            {user.membershipTier === "free" && (
+                <AdPlaceholder visible={adVisible} onClose={closeAd} />
+            )}
         </View>
     );
-
 }
 
 const styles = StyleSheet.create({

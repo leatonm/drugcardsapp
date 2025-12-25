@@ -13,11 +13,13 @@ export default function QuizViewer() {
     const dataString = params.data as string | undefined;
     const startString = params.start as string | undefined;
     const questionCountString = params.questionCount as string | undefined;
+    const includeCriticalThinkingString = params.includeCriticalThinking as string | undefined;
 
     const start = startString === "true";
     const questionCount = questionCountString 
         ? parseInt(questionCountString, 10) || 10 
         : 10;
+    const includeCriticalThinking = includeCriticalThinkingString === "true";
 
     const drugs = useMemo(() => {
         try {
@@ -77,7 +79,12 @@ export default function QuizViewer() {
 
                 {/* Quiz Engine - Centered */}
                 <View style={styles.quizCardWrapper}>
-                    <QuizCard drugs={finalDrugs} start={start} questionCount={questionCount} />
+                    <QuizCard 
+                        drugs={finalDrugs} 
+                        start={start} 
+                        questionCount={questionCount}
+                        includeCriticalThinking={includeCriticalThinking}
+                    />
                 </View>
             </ScrollView>
         </View>

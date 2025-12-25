@@ -75,11 +75,24 @@ export function useAuth() {
         }
     }
 
+    async function upgradeToPremium() {
+        try {
+            await AsyncStorage.setItem(MEMBERSHIP_KEY, "premium");
+            setUser((prev) => ({
+                ...prev,
+                membershipTier: "premium",
+            }));
+        } catch (error) {
+            console.error("Failed to upgrade:", error);
+        }
+    }
+
     return {
         user,
         loading,
         login,
         logout,
+        upgradeToPremium,
     };
 }
 
