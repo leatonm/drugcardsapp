@@ -225,16 +225,24 @@ export default function UserProfileModal({
 
                                 {/* Export Option */}
                                 <Pressable
-                                    style={styles.menuItem}
+                                    style={[
+                                        styles.menuItem,
+                                        user.membershipTier !== "premium" && styles.menuItemDisabled,
+                                    ]}
                                     onPress={handleExport}
+                                    disabled={user.membershipTier !== "premium"}
                                 >
                                     <Text style={styles.menuIcon}>📥</Text>
                                     <View style={styles.menuItemContent}>
-                                        <Text style={styles.menuItemTitle}>
+                                        <Text style={[
+                                            styles.menuItemTitle,
+                                            user.membershipTier !== "premium" && styles.menuItemTitleDisabled,
+                                        ]}>
                                             Export Drug Cards
                                         </Text>
                                         <Text style={styles.menuItemSubtext}>
                                             Download your drug cards as CSV or PDF
+                                            {user.membershipTier !== "premium" && " ⭐"}
                                         </Text>
                                     </View>
                                 </Pressable>
@@ -350,7 +358,7 @@ export default function UserProfileModal({
                             <View style={styles.featureItem}>
                                 <Text style={styles.featureIcon}>✓</Text>
                                 <Text style={styles.featureText}>
-                                    Unlimited quiz questions (10+ per quiz)
+                                    Unlock all quiz question options
                                 </Text>
                             </View>
                             <View style={styles.featureItem}>
@@ -369,12 +377,6 @@ export default function UserProfileModal({
                                 <Text style={styles.featureIcon}>✓</Text>
                                 <Text style={styles.featureText}>
                                     No ads - uninterrupted studying
-                                </Text>
-                            </View>
-                            <View style={styles.featureItem}>
-                                <Text style={styles.featureIcon}>✓</Text>
-                                <Text style={styles.featureText}>
-                                    Full access to all features
                                 </Text>
                             </View>
                         </View>
@@ -611,7 +613,7 @@ const styles = StyleSheet.create({
     upgradeModal: {
         width: "85%",
         maxWidth: 400,
-        backgroundColor: colors.background,
+        backgroundColor: "#FFFFFF",
         borderRadius: 20,
         padding: spacing.lg,
         borderWidth: 2,
@@ -620,7 +622,7 @@ const styles = StyleSheet.create({
     upgradeTitle: {
         fontSize: 24,
         fontWeight: "800",
-        color: colors.textPrimary,
+        color: "#1A1A1A",
         textAlign: "center",
         marginBottom: spacing.xs,
     },
@@ -649,8 +651,9 @@ const styles = StyleSheet.create({
     featureText: {
         flex: 1,
         fontSize: 15,
-        color: colors.textPrimary,
+        color: "#1A1A1A",
         lineHeight: 22,
+        fontWeight: "500",
     },
     purchaseButton: {
         backgroundColor: colors.accent,
@@ -677,6 +680,12 @@ const styles = StyleSheet.create({
         color: colors.textMuted,
         fontSize: 14,
         fontWeight: "600",
+    },
+    menuItemDisabled: {
+        opacity: 0.6,
+    },
+    menuItemTitleDisabled: {
+        color: colors.textMuted,
     },
 });
 

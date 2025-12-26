@@ -64,14 +64,22 @@ export default function QuizReview() {
                             </View>
                         </View>
 
-                        {/* Drug Name */}
-                        <Text style={styles.drugName}>
-                            {answer.drug.name.generic}
-                        </Text>
-                        {answer.drug.name.brand?.length > 0 && (
-                            <Text style={styles.brandName}>
-                                {answer.drug.name.brand.join(", ")}
+                        {/* Drug/Medication Name */}
+                        {answer.isCriticalThinking ? (
+                            <Text style={styles.drugName}>
+                                {answer.medication || "Critical Thinking Question"}
                             </Text>
+                        ) : (
+                            <>
+                                <Text style={styles.drugName}>
+                                    {answer.drug?.name?.generic || "N/A"}
+                                </Text>
+                                {answer.drug?.name?.brand?.length > 0 && (
+                                    <Text style={styles.brandName}>
+                                        {answer.drug.name.brand.join(", ")}
+                                    </Text>
+                                )}
+                            </>
                         )}
 
                         {/* Question */}
@@ -104,6 +112,20 @@ export default function QuizReview() {
                                 </View>
                             )}
                         </View>
+
+                        {/* Rationale and Clinical Pearl for Critical Thinking Questions */}
+                        {answer.isCriticalThinking && (
+                            <View style={styles.feedbackBox}>
+                                <Text style={styles.rationaleTitle}>Rationale:</Text>
+                                <Text style={styles.rationaleText}>
+                                    {answer.rationale || "No rationale available."}
+                                </Text>
+                                <Text style={styles.pearlTitle}>Clinical Pearl:</Text>
+                                <Text style={styles.pearlText}>
+                                    {answer.clinicalPearl || "No clinical pearl available."}
+                                </Text>
+                            </View>
+                        )}
                     </View>
                 ))}
 
@@ -271,6 +293,37 @@ const styles = StyleSheet.create({
         color: colors.buttonText,
         fontSize: 16,
         fontWeight: "700",
+    },
+    feedbackBox: {
+        backgroundColor: "rgba(61, 106, 159, 0.1)",
+        borderRadius: 12,
+        padding: spacing.md,
+        marginTop: spacing.md,
+        borderLeftWidth: 3,
+        borderLeftColor: colors.accent,
+    },
+    rationaleTitle: {
+        fontSize: 14,
+        fontWeight: "700",
+        color: colors.accent,
+        marginBottom: spacing.xs,
+    },
+    rationaleText: {
+        fontSize: 13,
+        color: colors.textPrimary,
+        lineHeight: 20,
+        marginBottom: spacing.sm,
+    },
+    pearlTitle: {
+        fontSize: 14,
+        fontWeight: "700",
+        color: colors.accent,
+        marginBottom: spacing.xs,
+    },
+    pearlText: {
+        fontSize: 13,
+        color: colors.textPrimary,
+        lineHeight: 20,
     },
 });
 

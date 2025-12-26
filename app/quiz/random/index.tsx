@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
 
     checkboxLabel: {
         fontSize: 14,
-        color: colors.textPrimary,
+        color: "#1A1A1A",
         fontWeight: "600",
     },
     checkboxDisabled: {

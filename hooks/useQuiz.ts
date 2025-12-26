@@ -225,8 +225,29 @@ export function useQuiz(
             medication?: string;
         }> = [];
 
-        // Generate regular questions from drugs
-        if (drugs && drugs.length > 0) {
+        // First, determine how many critical thinking questions to include (30% of total)
+        let criticalCount = 0;
+        let criticalToAdd: typeof criticalThinkingQuestions = [];
+        
+        if (criticalThinkingQuestions && criticalThinkingQuestions.length > 0) {
+            // Calculate how many critical questions to add (30% of questionCount, but not more than available)
+            criticalCount = Math.min(
+                Math.floor(questionCount * 0.3),
+                criticalThinkingQuestions.length
+            );
+            
+            // Shuffle and select critical questions
+            const criticalCopy = [...criticalThinkingQuestions];
+            const shuffledCritical = criticalCopy.sort(() => Math.random() - 0.5);
+            criticalToAdd = shuffledCritical.slice(0, criticalCount);
+            
+            console.log(`Will mix in ${criticalCount} critical thinking questions out of ${criticalThinkingQuestions.length} available`);
+        }
+
+        // Generate regular questions - only generate enough to fill the remaining slots
+        const regularQuestionCount = questionCount - criticalCount;
+        
+        if (drugs && drugs.length > 0 && regularQuestionCount > 0) {
             const validDrugs = drugs.filter(
                 (drug) =>
                     drug.class &&
@@ -242,11 +263,11 @@ export function useQuiz(
                     correct: string;
                     choices: string[];
                 }> = [];
-                const maxAttempts = questionCount * 10;
+                const maxAttempts = regularQuestionCount * 10;
                 let attempts = 0;
 
                 while (
-                    generatedQuestions.length < questionCount &&
+                    generatedQuestions.length < regularQuestionCount &&
                     attempts < maxAttempts
                 ) {
                     attempts++;
@@ -268,39 +289,45 @@ export function useQuiz(
             }
         }
 
-        // Add critical thinking questions if provided
-        // Use a stable approach: only add if we have questions and they're valid
-        if (criticalThinkingQuestions && criticalThinkingQuestions.length > 0) {
-            // Create a copy to avoid mutating the original
-            const criticalCopy = [...criticalThinkingQuestions];
-            // Shuffle once
-            const shuffledCritical = criticalCopy.sort(() => Math.random() - 0.5);
-            // Calculate how many to add (30% of questionCount, but not more than available)
-            const criticalCount = Math.min(
-                Math.floor(questionCount * 0.3),
-                shuffledCritical.length
-            );
-            const criticalToAdd = shuffledCritical.slice(0, criticalCount);
+        // Add critical thinking questions
+        criticalToAdd.forEach((ctq) => {
+            // Validate the question before adding
+            // Ensure correctAnswer is a string (not an array for select-all-that-apply)
+            const isValid = ctq.stem && 
+                typeof ctq.correctAnswer === "string" && 
+                ctq.correctAnswer.length > 0 &&
+                Array.isArray(ctq.choices) && 
+                ctq.choices.length > 0;
+            
+            if (isValid) {
+                allQuestions.push({
+                    question: ctq.stem,
+                    correct: ctq.correctAnswer,
+                    choices: ctq.choices,
+                    isCriticalThinking: true,
+                    rationale: ctq.rationale,
+                    clinicalPearl: ctq.clinicalPearl,
+                    medication: ctq.medication,
+                });
+            } else {
+                console.warn("Skipping invalid critical thinking question:", {
+                    id: ctq.id,
+                    hasStem: !!ctq.stem,
+                    correctAnswerType: typeof ctq.correctAnswer,
+                    hasChoices: Array.isArray(ctq.choices),
+                    choicesLength: ctq.choices?.length || 0,
+                });
+            }
+        });
 
-            criticalToAdd.forEach((ctq) => {
-                // Validate the question before adding
-                if (ctq.stem && ctq.correctAnswer && Array.isArray(ctq.choices) && ctq.choices.length > 0) {
-                    allQuestions.push({
-                        question: ctq.stem,
-                        correct: ctq.correctAnswer,
-                        choices: ctq.choices,
-                        isCriticalThinking: true,
-                        rationale: ctq.rationale,
-                        clinicalPearl: ctq.clinicalPearl,
-                        medication: ctq.medication,
-                    });
-                }
-            });
-        }
-
-        // Shuffle all questions together and limit to questionCount
+        // Shuffle all questions together to mix them randomly
         const shuffled = allQuestions.sort(() => Math.random() - 0.5);
-        const finalQuestions = shuffled.slice(0, questionCount);
+        const finalQuestions = shuffled;
+        
+        // Count critical thinking questions in final set
+        const criticalInFinal = finalQuestions.filter(q => q.isCriticalThinking).length;
+        const regularInFinal = finalQuestions.length - criticalInFinal;
+        console.log(`Quiz generated: ${finalQuestions.length} total questions (${criticalInFinal} critical thinking, ${regularInFinal} regular) - randomly mixed`);
         
         // Debug logging
         if (finalQuestions.length === 0) {
@@ -310,6 +337,8 @@ export function useQuiz(
                 questionCount,
                 allQuestionsCount: allQuestions.length,
             });
+        } else if (criticalInFinal === 0 && criticalThinkingQuestions && criticalThinkingQuestions.length > 0) {
+            console.warn("No critical thinking questions were included despite being available. Check validation logic.");
         }
         
         return finalQuestions;

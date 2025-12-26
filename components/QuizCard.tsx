@@ -44,12 +44,18 @@ export default function QuizCard({ drugs, start, questionCount = 10, includeCrit
         }
         setSelected(null);
         setShowRationale(false);
+        // Ensure content is visible when quiz starts
+        fadeAnim.setValue(1);
     }, [start, fadeAnim]);
 
     // Reset selection and fade animation when question changes
     // Use a ref to track previous index to avoid double-triggering
     useEffect(() => {
-        if (!start || !quiz || !quiz.question) return;
+        if (!start || !quiz || !quiz.question) {
+            // Ensure content is visible if quiz isn't ready
+            fadeAnim.setValue(1);
+            return;
+        }
         
         // Only animate if the index actually changed
         if (prevIndexRef.current === quiz.currentIndex) return;
@@ -65,7 +71,12 @@ export default function QuizCard({ drugs, start, questionCount = 10, includeCrit
             toValue: 1,
             duration: 300,
             useNativeDriver: true,
-        }).start();
+        }).start((finished) => {
+            // Ensure opacity is 1 even if animation fails
+            if (!finished) {
+                fadeAnim.setValue(1);
+            }
+        });
     }, [quiz.currentIndex, start, quiz.question, fadeAnim]);
 
     // Record statistics when quiz is finished
@@ -76,6 +87,18 @@ export default function QuizCard({ drugs, start, questionCount = 10, includeCrit
         }
     }, [quiz.finished, quiz.score, quiz.total, statsRecorded, recordQuiz]);
 
+    // Debug logging for critical thinking questions
+    useEffect(() => {
+        if (quiz.isCriticalThinking) {
+            console.log("Critical thinking question rendered:", {
+                hasQuestion: !!quiz.question,
+                hasChoices: !!quiz.choices && quiz.choices.length > 0,
+                medication: quiz.medication,
+                currentIndex: quiz.currentIndex,
+            });
+        }
+    }, [quiz.isCriticalThinking, quiz.question, quiz.choices, quiz.medication, quiz.currentIndex]);
+
     // Show loading state if quiz is not ready
     if (!start) return null;
     
@@ -83,7 +106,7 @@ export default function QuizCard({ drugs, start, questionCount = 10, includeCrit
     if (includeCriticalThinking && criticalLoading) {
         return (
             <View style={styles.container}>
-                <Text style={styles.loadingText}>Loading questions...</Text>
+                <Text style={styles.loadingText}>Loading critical thinking questions...</Text>
             </View>
         );
     }
@@ -97,6 +120,12 @@ export default function QuizCard({ drugs, start, questionCount = 10, includeCrit
     }
     
     if (quiz.total === 0) {
+        console.warn("No questions available:", {
+            drugsCount: drugs?.length || 0,
+            criticalCount: criticalQuestions.length,
+            includeCriticalThinking,
+            questionCount,
+        });
         return (
             <View style={styles.container}>
                 <Text style={styles.loadingText}>
@@ -112,7 +141,13 @@ export default function QuizCard({ drugs, start, questionCount = 10, includeCrit
         );
     }
     
-    if (!quiz.question) {
+    if (!quiz.question || !quiz.choices || quiz.choices.length === 0) {
+        console.warn("Invalid question state:", {
+            hasQuestion: !!quiz.question,
+            choicesCount: quiz.choices?.length || 0,
+            currentIndex: quiz.currentIndex,
+            total: quiz.total,
+        });
         return (
             <View style={styles.container}>
                 <Text style={styles.loadingText}>Preparing question...</Text>
@@ -126,7 +161,7 @@ export default function QuizCard({ drugs, start, questionCount = 10, includeCrit
     const answered = selected !== null;
 
     return (
-        <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
+        <View style={styles.container}>
 
             {/* EXIT BUTTON (Quiz red) */}
             <Pressable style={styles.exitButton} onPress={() => router.replace("/quiz")}>
@@ -134,7 +169,12 @@ export default function QuizCard({ drugs, start, questionCount = 10, includeCrit
             </Pressable>
 
             <View style={styles.card}>
-                <View style={styles.cardContent}>
+                <Animated.View 
+                    style={[
+                        styles.cardContent,
+                        { opacity: fadeAnim }
+                    ]}
+                >
                     {/* Question Counter */}
                     <View style={styles.questionCounter}>
                         <Text style={styles.questionCounterText}>
@@ -207,7 +247,7 @@ export default function QuizCard({ drugs, start, questionCount = 10, includeCrit
                             </Text>
                         </View>
                     )}
-                </View>
+                </Animated.View>
 
                 {/* NEXT QUESTION BUTTON */}
                 {answered && !quiz.finished && (
@@ -259,7 +299,7 @@ export default function QuizCard({ drugs, start, questionCount = 10, includeCrit
                 )}
             </View>
 
-        </Animated.View>
+        </View>
     );
 }
 
@@ -273,6 +313,7 @@ const styles = StyleSheet.create({
         alignSelf: "center",
         padding: spacing.md,
         alignItems: "center",
+        backgroundColor: "transparent", // Ensure container is visible
     },
 
     /* EXIT BUTTON (red) */
