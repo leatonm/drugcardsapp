@@ -28,7 +28,7 @@ export function useCriticalThinkingQuestions(scope: UserScope) {
                 // Only load questions for RN and Paramedic
                 if (scope === "RN") {
                     const response = await fetch(
-                        "https://raw.githubusercontent.com/leatonm/drug-cards-data/main/rnQuestions.json"
+                        "https://raw.githubusercontent.com/leatonm/drug-cards-data/refs/heads/main/rnQuestions.json"
                     );
                     if (!response.ok) {
                         throw new Error(`Failed to fetch RN questions`);
@@ -37,7 +37,7 @@ export function useCriticalThinkingQuestions(scope: UserScope) {
                     setQuestions(Array.isArray(data) ? data : []);
                 } else if (scope === "Paramedic") {
                     const response = await fetch(
-                        "https://raw.githubusercontent.com/leatonm/drug-cards-data/main/paramedicQuestions.json"
+                        "https://raw.githubusercontent.com/leatonm/drug-cards-data/refs/heads/main/paramedicQuestions.json"
                     );
                     if (!response.ok) {
                         throw new Error(`Failed to fetch Paramedic questions`);
@@ -61,9 +61,15 @@ export function useCriticalThinkingQuestions(scope: UserScope) {
         loadQuestions();
     }, [scope]);
 
-    // Filter questions by scope
+    // Filter questions by scope and only include multiple-choice questions (skip select-all-that-apply for now)
     const filteredQuestions = questions.filter(
-        (q) => Array.isArray(q.scope) && q.scope.includes(scope)
+        (q) => 
+            Array.isArray(q.scope) && 
+            q.scope.includes(scope) &&
+            q.questionType === "multiple-choice" &&
+            typeof q.correctAnswer === "string" &&
+            Array.isArray(q.choices) &&
+            q.choices.length > 0
     );
 
     return { questions: filteredQuestions, loading, error };

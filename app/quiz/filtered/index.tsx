@@ -1,6 +1,6 @@
 // app/quiz/filtered/index.tsx
 import { useRouter } from "expo-router";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
     Modal,
     Pressable,
@@ -143,7 +143,7 @@ export const CATEGORY_MAP: Record<string, string[]> = {
 
 const CATEGORIES = Object.keys(CATEGORY_MAP);
 
-const QUESTION_COUNTS = [10, 20, 40, 50];
+const QUESTION_COUNTS = [10, 35, 50, 100];
 
 export default function FilteredQuiz() {
     const router = useRouter();
@@ -161,6 +161,13 @@ export default function FilteredQuiz() {
         user.membershipTier === "premium"
             ? QUESTION_COUNTS
             : [10];
+
+    // Ensure critical thinking is disabled for free users
+    useEffect(() => {
+        if (user.membershipTier !== "premium") {
+            setIncludeCriticalThinking(false);
+        }
+    }, [user.membershipTier]);
 
     if (loading) {
         return <Text style={styles.loading}>Loading...</Text>;
@@ -254,24 +261,41 @@ export default function FilteredQuiz() {
                     })}
                 </View>
 
-                {/* Critical Thinking Checkbox - Premium Only */}
-                {user.membershipTier === "premium" && (
-                    <View style={styles.checkboxContainer}>
-                        <Pressable
-                            style={styles.checkbox}
-                            onPress={() =>
-                                setIncludeCriticalThinking(!includeCriticalThinking)
+                {/* Critical Thinking Checkbox - Visible to all, but disabled for free users */}
+                <View style={styles.checkboxContainer}>
+                    <Pressable
+                        style={[
+                            styles.checkbox,
+                            user.membershipTier !== "premium" && styles.checkboxDisabled,
+                        ]}
+                        onPress={() => {
+                            if (user.membershipTier === "premium") {
+                                setIncludeCriticalThinking(!includeCriticalThinking);
                             }
+                        }}
+                        disabled={user.membershipTier !== "premium"}
+                    >
+                        <Text
+                            style={[
+                                styles.checkboxIcon,
+                                user.membershipTier !== "premium" &&
+                                    styles.checkboxIconDisabled,
+                            ]}
                         >
-                            <Text style={styles.checkboxIcon}>
-                                {includeCriticalThinking ? "☑" : "☐"}
-                            </Text>
-                            <Text style={styles.checkboxLabel}>
-                                Include Critical Thinking Questions
-                            </Text>
-                        </Pressable>
-                    </View>
-                )}
+                            {includeCriticalThinking ? "☑" : "☐"}
+                        </Text>
+                        <Text
+                            style={[
+                                styles.checkboxLabel,
+                                user.membershipTier !== "premium" &&
+                                    styles.checkboxLabelDisabled,
+                            ]}
+                        >
+                            Include Critical Thinking Questions
+                            {user.membershipTier !== "premium" && " ⭐"}
+                        </Text>
+                    </Pressable>
+                </View>
 
                 {/* Start Quiz */}
                 <Pressable
@@ -358,6 +382,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: spacing.xl,
         borderRadius: 20,
         marginBottom: spacing.lg,
+        alignSelf: "center",
     },
     modeBannerText: {
         color: colors.danger,
@@ -567,5 +592,14 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: colors.textPrimary,
         fontWeight: "600",
+    },
+    checkboxDisabled: {
+        opacity: 0.6,
+    },
+    checkboxIconDisabled: {
+        opacity: 0.5,
+    },
+    checkboxLabelDisabled: {
+        color: colors.textMuted,
     },
 });

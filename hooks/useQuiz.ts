@@ -1,5 +1,5 @@
 // hooks/useQuiz.ts
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Drug } from "./getDrugs";
 import type { CriticalThinkingQuestion } from "./useCriticalThinkingQuestions";
 
@@ -211,6 +211,7 @@ export function useQuiz(
     const [score, setScore] = useState(0);
     const [finished, setFinished] = useState(false);
     const [answers, setAnswers] = useState<QuizAnswer[]>([]);
+    const lockedQuestionsRef = useRef<typeof questions | null>(null);
 
     const questions = useMemo(() => {
         const allQuestions: Array<{
@@ -268,48 +269,88 @@ export function useQuiz(
         }
 
         // Add critical thinking questions if provided
-        if (criticalThinkingQuestions.length > 0) {
-            const shuffledCritical = [...criticalThinkingQuestions].sort(
-                () => Math.random() - 0.5
+        // Use a stable approach: only add if we have questions and they're valid
+        if (criticalThinkingQuestions && criticalThinkingQuestions.length > 0) {
+            // Create a copy to avoid mutating the original
+            const criticalCopy = [...criticalThinkingQuestions];
+            // Shuffle once
+            const shuffledCritical = criticalCopy.sort(() => Math.random() - 0.5);
+            // Calculate how many to add (30% of questionCount, but not more than available)
+            const criticalCount = Math.min(
+                Math.floor(questionCount * 0.3),
+                shuffledCritical.length
             );
-            const criticalToAdd = shuffledCritical.slice(
-                0,
-                Math.min(
-                    Math.floor(questionCount * 0.3),
-                    shuffledCritical.length
-                )
-            );
+            const criticalToAdd = shuffledCritical.slice(0, criticalCount);
 
             criticalToAdd.forEach((ctq) => {
-                allQuestions.push({
-                    question: ctq.stem,
-                    correct: ctq.correctAnswer,
-                    choices: ctq.choices,
-                    isCriticalThinking: true,
-                    rationale: ctq.rationale,
-                    clinicalPearl: ctq.clinicalPearl,
-                    medication: ctq.medication,
-                });
+                // Validate the question before adding
+                if (ctq.stem && ctq.correctAnswer && Array.isArray(ctq.choices) && ctq.choices.length > 0) {
+                    allQuestions.push({
+                        question: ctq.stem,
+                        correct: ctq.correctAnswer,
+                        choices: ctq.choices,
+                        isCriticalThinking: true,
+                        rationale: ctq.rationale,
+                        clinicalPearl: ctq.clinicalPearl,
+                        medication: ctq.medication,
+                    });
+                }
             });
         }
 
         // Shuffle all questions together and limit to questionCount
         const shuffled = allQuestions.sort(() => Math.random() - 0.5);
-        return shuffled.slice(0, questionCount);
+        const finalQuestions = shuffled.slice(0, questionCount);
+        
+        // Debug logging
+        if (finalQuestions.length === 0) {
+            console.warn("No questions generated:", {
+                drugsCount: drugs?.length || 0,
+                criticalCount: criticalThinkingQuestions?.length || 0,
+                questionCount,
+                allQuestionsCount: allQuestions.length,
+            });
+        }
+        
+        return finalQuestions;
     }, [drugs, questionCount, criticalThinkingQuestions]);
+
+    // Lock questions once they're first available to prevent regeneration when critical thinking questions load
+    // This prevents questions from changing when critical thinking questions load asynchronously
+    const stableQuestions = useMemo(() => {
+        // If we've already locked questions, always use the locked version
+        if (lockedQuestionsRef.current) {
+            return lockedQuestionsRef.current;
+        }
+        
+        // If we have questions and haven't locked yet, lock them now
+        if (questions.length > 0) {
+            lockedQuestionsRef.current = questions;
+            return questions;
+        }
+        
+        return questions;
+    }, [questions]);
 
     // Reset quiz state when questions change (drugs or questionCount changes)
+    // Only reset if questions haven't been locked yet
     useEffect(() => {
-        setCurrentIndex(0);
-        setScore(0);
-        setFinished(false);
-        setAnswers([]);
-    }, [drugs, questionCount, criticalThinkingQuestions]);
+        // If questions are empty, don't reset (wait for them to load)
+        if (stableQuestions.length === 0) return;
+        
+        // Only reset if we haven't locked questions yet (quiz hasn't started)
+        if (!lockedQuestionsRef.current) {
+            setCurrentIndex(0);
+            setScore(0);
+            setFinished(false);
+            setAnswers([]);
+        }
+    }, [stableQuestions.length]);
 
-    const current = questions[currentIndex];
+    const current = stableQuestions[currentIndex];
 
     function selectAnswer(answer: string) {
-        if (finished || currentIndex >= questions.length || !current) {
+        if (finished || currentIndex >= stableQuestions.length || !current) {
             return;
         }
 
@@ -338,23 +379,33 @@ export function useQuiz(
     }
 
     function next() {
-        if (currentIndex + 1 >= questions.length) {
+        if (currentIndex + 1 >= stableQuestions.length) {
             setFinished(true);
         } else {
             setCurrentIndex((i) => i + 1);
         }
     }
 
+    // Ensure we have a valid current question
+    const hasValidQuestion = current && 
+        current.question && 
+        typeof current.question === "string" &&
+        current.choices && 
+        Array.isArray(current.choices) &&
+        current.choices.length > 0 &&
+        current.correct &&
+        typeof current.correct === "string";
+
     return {
         currentDrug: current?.drug,
-        question: current?.question,
-        choices: current?.choices,
-        correctAnswer: current?.correct,
+        question: hasValidQuestion ? current.question : undefined,
+        choices: hasValidQuestion ? current.choices : [],
+        correctAnswer: hasValidQuestion ? current.correct : undefined,
         currentIndex,
-        total: questions.length,
+        total: stableQuestions.length,
         selectAnswer,
         next,
-        finished,
+        finished: finished || questions.length === 0,
         score,
         answers, // All answers for review
         hasAnswered: false, // Removed - QuizCard manages this state

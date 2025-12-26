@@ -1,6 +1,6 @@
 // app/quiz/random/index.tsx
 import { useRouter } from "expo-router";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import AppHeader from "../../../components/AppHeader";
 import { useDrugs } from "../../../hooks/getDrugs";
@@ -9,7 +9,7 @@ import { useUserScope } from "../../../hooks/useUserScope";
 import { colors } from "../../../styles/colors";
 import { spacing } from "../../../styles/spacing";
 
-const QUESTION_COUNTS = [10, 20, 40, 50];
+const QUESTION_COUNTS = [10, 35, 50, 100];
 
 export default function RandomQuiz() {
     const router = useRouter();
@@ -24,6 +24,13 @@ export default function RandomQuiz() {
         user.membershipTier === "premium"
             ? QUESTION_COUNTS
             : [10];
+
+    // Ensure critical thinking is disabled for free users
+    useEffect(() => {
+        if (user.membershipTier !== "premium") {
+            setIncludeCriticalThinking(false);
+        }
+    }, [user.membershipTier]);
 
     if (loading) {
         return <Text style={styles.loading}>Loading...</Text>;
@@ -98,6 +105,42 @@ export default function RandomQuiz() {
                             </Pressable>
                         );
                     })}
+                </View>
+
+                {/* Critical Thinking Checkbox - Visible to all, but disabled for free users */}
+                <View style={styles.checkboxContainer}>
+                    <Pressable
+                        style={[
+                            styles.checkbox,
+                            user.membershipTier !== "premium" && styles.checkboxDisabled,
+                        ]}
+                        onPress={() => {
+                            if (user.membershipTier === "premium") {
+                                setIncludeCriticalThinking(!includeCriticalThinking);
+                            }
+                        }}
+                        disabled={user.membershipTier !== "premium"}
+                    >
+                        <Text
+                            style={[
+                                styles.checkboxIcon,
+                                user.membershipTier !== "premium" &&
+                                    styles.checkboxIconDisabled,
+                            ]}
+                        >
+                            {includeCriticalThinking ? "☑" : "☐"}
+                        </Text>
+                        <Text
+                            style={[
+                                styles.checkboxLabel,
+                                user.membershipTier !== "premium" &&
+                                    styles.checkboxLabelDisabled,
+                            ]}
+                        >
+                            Include Critical Thinking Questions
+                            {user.membershipTier !== "premium" && " ⭐"}
+                        </Text>
+                    </Pressable>
                 </View>
 
                 {/* Start Quiz */}
@@ -287,5 +330,14 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: colors.textPrimary,
         fontWeight: "600",
+    },
+    checkboxDisabled: {
+        opacity: 0.6,
+    },
+    checkboxIconDisabled: {
+        opacity: 0.5,
+    },
+    checkboxLabelDisabled: {
+        color: colors.textMuted,
     },
 });

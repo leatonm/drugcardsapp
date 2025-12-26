@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import type { Drug } from "../hooks/getDrugs";
 import { useCriticalThinkingQuestions } from "../hooks/useCriticalThinkingQuestions";
@@ -20,32 +20,53 @@ interface Props {
 export default function QuizCard({ drugs, start, questionCount = 10, includeCriticalThinking = false }: Props) {
     const router = useRouter();
     const { scope } = useUserScope();
-    const { questions: criticalQuestions } = useCriticalThinkingQuestions(scope);
-    const quiz = useQuiz(drugs, questionCount, includeCriticalThinking ? criticalQuestions : []);
+    const { questions: criticalQuestions, loading: criticalLoading } = useCriticalThinkingQuestions(scope);
+    
+    // Stabilize critical questions array to prevent unnecessary re-renders
+    const stableCriticalQuestions = useMemo(() => {
+        return includeCriticalThinking ? criticalQuestions : [];
+    }, [includeCriticalThinking, criticalQuestions]);
+    
+    const quiz = useQuiz(drugs, questionCount, stableCriticalQuestions);
     const { recordQuiz } = useStatistics();
     const [selected, setSelected] = useState<string | null>(null);
+    const [showRationale, setShowRationale] = useState(false);
     const [statsRecorded, setStatsRecorded] = useState(false);
     const fadeAnim = useRef(new Animated.Value(0)).current;
+    const prevIndexRef = useRef<number>(-1);
 
     // Reset quiz when starting
     useEffect(() => {
+        if (!start) {
+            fadeAnim.setValue(0);
+            prevIndexRef.current = -1;
+            return;
+        }
         setSelected(null);
         setShowRationale(false);
-        fadeAnim.setValue(0);
-    }, [start]);
+    }, [start, fadeAnim]);
 
     // Reset selection and fade animation when question changes
+    // Use a ref to track previous index to avoid double-triggering
     useEffect(() => {
-        if (!start) return;
+        if (!start || !quiz || !quiz.question) return;
+        
+        // Only animate if the index actually changed
+        if (prevIndexRef.current === quiz.currentIndex) return;
+        prevIndexRef.current = quiz.currentIndex;
+        
+        // Reset state
         setSelected(null);
         setShowRationale(false);
+        
+        // Animate in smoothly
         fadeAnim.setValue(0);
         Animated.timing(fadeAnim, {
             toValue: 1,
             duration: 300,
             useNativeDriver: true,
         }).start();
-    }, [quiz.question, start, fadeAnim]);
+    }, [quiz.currentIndex, start, quiz.question, fadeAnim]);
 
     // Record statistics when quiz is finished
     useEffect(() => {
@@ -55,7 +76,53 @@ export default function QuizCard({ drugs, start, questionCount = 10, includeCrit
         }
     }, [quiz.finished, quiz.score, quiz.total, statsRecorded, recordQuiz]);
 
-    if (!start || !quiz || !quiz.question) return null;
+    // Show loading state if quiz is not ready
+    if (!start) return null;
+    
+    // Wait for critical thinking questions to load if needed
+    if (includeCriticalThinking && criticalLoading) {
+        return (
+            <View style={styles.container}>
+                <Text style={styles.loadingText}>Loading questions...</Text>
+            </View>
+        );
+    }
+    
+    if (!quiz) {
+        return (
+            <View style={styles.container}>
+                <Text style={styles.loadingText}>Loading quiz...</Text>
+            </View>
+        );
+    }
+    
+    if (quiz.total === 0) {
+        return (
+            <View style={styles.container}>
+                <Text style={styles.loadingText}>
+                    No questions available. Please check your drug selection and try again.
+                </Text>
+                <Text style={[styles.loadingText, { fontSize: 12, marginTop: spacing.sm }]}>
+                    Drugs: {drugs?.length || 0} | Critical: {criticalQuestions.length} | Requested: {questionCount}
+                </Text>
+                <Pressable style={styles.backButton} onPress={() => router.replace("/quiz")}>
+                    <Text style={styles.backButtonText}>Back to Quiz Menu</Text>
+                </Pressable>
+            </View>
+        );
+    }
+    
+    if (!quiz.question) {
+        return (
+            <View style={styles.container}>
+                <Text style={styles.loadingText}>Preparing question...</Text>
+                <Text style={[styles.loadingText, { fontSize: 12, marginTop: spacing.sm }]}>
+                    Total questions: {quiz.total} | Current index: {quiz.currentIndex}
+                </Text>
+            </View>
+        );
+    }
+    
     const answered = selected !== null;
 
     return (
@@ -454,5 +521,24 @@ const styles = StyleSheet.create({
         fontSize: 13,
         color: "#E0E5EB",
         lineHeight: 20,
+    },
+    loadingText: {
+        color: colors.textPrimary,
+        fontSize: 16,
+        textAlign: "center",
+        marginVertical: spacing.lg,
+    },
+    backButton: {
+        backgroundColor: colors.accent,
+        paddingVertical: spacing.md,
+        paddingHorizontal: spacing.xl,
+        borderRadius: 16,
+        marginTop: spacing.lg,
+        alignSelf: "center",
+    },
+    backButtonText: {
+        color: colors.buttonText,
+        fontSize: 16,
+        fontWeight: "700",
     },
 });
