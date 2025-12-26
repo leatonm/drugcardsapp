@@ -143,7 +143,7 @@ export const CATEGORY_MAP: Record<string, string[]> = {
 
 const CATEGORIES = Object.keys(CATEGORY_MAP);
 
-const QUESTION_COUNTS = [10, 35, 50, 100];
+const QUESTION_COUNTS = [10, 40, 75, 100];
 
 export default function FilteredQuiz() {
     const router = useRouter();

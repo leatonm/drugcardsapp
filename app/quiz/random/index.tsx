@@ -9,7 +9,7 @@ import { useUserScope } from "../../../hooks/useUserScope";
 import { colors } from "../../../styles/colors";
 import { spacing } from "../../../styles/spacing";
 
-const QUESTION_COUNTS = [10, 35, 50, 100];
+const QUESTION_COUNTS = [10, 40, 75, 100];
 
 export default function RandomQuiz() {
     const router = useRouter();
