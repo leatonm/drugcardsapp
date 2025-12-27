@@ -76,24 +76,21 @@ export function useCriticalThinkingQuestions(scope: UserScope) {
             if (Array.isArray(q.scope)) {
                 // Check if any scope in the array matches (case-insensitive)
                 hasScope = q.scope.some(s => 
-                    s.toString().trim().toLowerCase() === scope.toString().trim().toLowerCase()
+                    String(s).trim().toLowerCase() === String(scope).trim().toLowerCase()
                 );
             } else if (q.scope) {
                 // Handle string scope
-                hasScope = q.scope.toString().trim().toLowerCase() === scope.toString().trim().toLowerCase();
+                hasScope = String(q.scope).trim().toLowerCase() === String(scope).trim().toLowerCase();
             }
             
             const isMultipleChoice = q.questionType === "multiple-choice";
-            // Handle both string and array correctAnswer (convert array to string for now)
-            let correctAnswerValid = false;
-            if (typeof q.correctAnswer === "string") {
-                correctAnswerValid = q.correctAnswer.length > 0;
-            } else if (Array.isArray(q.correctAnswer)) {
-                // For select-all-that-apply, skip for now
-                correctAnswerValid = false;
-            }
-            const hasChoices = Array.isArray(q.choices) && q.choices.length > 0;
-            const hasStem = q.stem && typeof q.stem === "string" && q.stem.length > 0;
+            // Handle both string and array correctAnswer - allow both types
+            const correctAnswerValid = 
+                (typeof q.correctAnswer === "string" && q.correctAnswer.trim().length > 0) ||
+                (Array.isArray(q.correctAnswer) && q.correctAnswer.length > 0 && q.correctAnswer.every(a => typeof a === "string" && a.trim().length > 0));
+            
+            const hasChoices = Array.isArray(q.choices) && q.choices.length > 0 && q.choices.every(c => typeof c === "string" && c.trim().length > 0);
+            const hasStem = q.stem && typeof q.stem === "string" && q.stem.trim().length > 0;
             
             const isValid = hasScope && isMultipleChoice && correctAnswerValid && hasChoices && hasStem;
             

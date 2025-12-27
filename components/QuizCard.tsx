@@ -28,14 +28,19 @@ export default function QuizCard({ drugs, start, questionCount = 10, includeCrit
     const canUseCriticalThinking = user.membershipTier === "premium" && includeCriticalThinking;
     
     // Pass raw criticalQuestions to useQuiz - let it handle filtering based on includeCriticalThinking
-    // But respect premium status: only pass includeCriticalThinking if user is premium
-    const effectiveIncludeCriticalThinking = canUseCriticalThinking && includeCriticalThinking;
+    console.log("🔍 QuizCard CTQ Setup:", {
+        includeCriticalThinking,
+        userTier: user.membershipTier,
+        canUseCriticalThinking,
+        criticalQuestionsCount: criticalQuestions.length,
+        criticalLoading,
+    });
     
     const quiz = useQuiz(
         drugs,
         questionCount,
         criticalQuestions, // Pass raw questions, not filtered
-        effectiveIncludeCriticalThinking, // Only true if premium AND checkbox checked
+        canUseCriticalThinking, // Pass checkbox state directly for testing
         start
     );
     const { recordQuiz } = useStatistics();
@@ -154,7 +159,18 @@ export default function QuizCard({ drugs, start, questionCount = 10, includeCrit
     }
     
     // Don't render if current question is invalid or not ready
-    if (!quiz.question || !quiz.choices || quiz.choices.length === 0 || quiz.currentIndex >= quiz.total) {
+    // But allow rendering if we have a valid question even if total is still growing (CTQs loading)
+    const hasValidQuestion = quiz.question && 
+        typeof quiz.question === "string" && 
+        quiz.question.trim().length > 0 &&
+        quiz.choices && 
+        Array.isArray(quiz.choices) && 
+        quiz.choices.length > 0 &&
+        quiz.correctAnswer &&
+        typeof quiz.correctAnswer === "string" &&
+        quiz.correctAnswer.trim().length > 0;
+    
+    if (!hasValidQuestion || quiz.currentIndex >= quiz.total) {
         return (
             <View style={styles.container}>
                 <Text style={styles.loadingText}>Preparing question...</Text>

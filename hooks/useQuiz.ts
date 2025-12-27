@@ -294,6 +294,18 @@ export type QuizAnswer = {
     medication?: string;
 };
 
+// Type for quiz items (the mixed list with CTQs)
+type QuizItem = {
+    drug?: Drug;
+    question: string;
+    correct: string;
+    choices: string[];
+    isCriticalThinking?: boolean;
+    rationale?: string;
+    clinicalPearl?: string;
+    medication?: string;
+};
+
 export function useQuiz(
     drugs: Drug[],
     questionCount: number = 10,
@@ -305,9 +317,21 @@ export function useQuiz(
     const [score, setScore] = useState(0);
     const [finished, setFinished] = useState(false);
     const [answers, setAnswers] = useState<QuizAnswer[]>([]);
-    const lockedQuestionsRef = useRef<typeof questions | null>(null);
+    const lockedQuestionsRef = useRef<QuizItem[] | null>(null);
 
     const questions = useMemo(() => {
+        console.log("🚀 useQuiz useMemo triggered:", {
+            includeCriticalThinking,
+            criticalThinkingQuestionsCount: criticalThinkingQuestions.length,
+            drugsCount: drugs.length,
+            questionCount,
+            firstCTQ: criticalThinkingQuestions[0] ? {
+                id: criticalThinkingQuestions[0].id,
+                scope: criticalThinkingQuestions[0].scope,
+                stem: criticalThinkingQuestions[0].stem?.substring(0, 50),
+            } : null,
+        });
+        
         const allQuestions: Array<{
             drug?: Drug;
             question: string;
@@ -323,10 +347,23 @@ export function useQuiz(
         const ctqs = includeCriticalThinking
             ? criticalThinkingQuestions
             : []; // Force none if unchecked
+        
+        console.log("🔍 CTQ Filtering:", {
+            includeCriticalThinking,
+            criticalThinkingQuestionsCount: criticalThinkingQuestions.length,
+            ctqsCount: ctqs.length,
+            questionCount,
+        });
 
         // First, determine how many critical thinking questions to include (50% of total for 50/50 split)
         let criticalCount = 0;
         let criticalToAdd: typeof ctqs = [];
+        
+        console.log("🔍 CTQ Selection:", {
+            includeCriticalThinking,
+            ctqsLength: ctqs.length,
+            questionCount,
+        });
         
         if (ctqs && ctqs.length > 0) {
             // Calculate how many critical questions to add (50% of questionCount, but not more than available)
@@ -340,7 +377,25 @@ export function useQuiz(
             const shuffledCritical = criticalCopy.sort(() => Math.random() - 0.5);
             criticalToAdd = shuffledCritical.slice(0, criticalCount);
             
-            console.log(`Will mix in ${criticalCount} critical thinking questions (50/50 split) out of ${ctqs.length} available`);
+            console.log(`✅ Will mix in ${criticalCount} critical thinking questions (50/50 split) out of ${ctqs.length} available`);
+            console.log(`📋 Selected CTQ IDs:`, criticalToAdd.map(q => q.id));
+            console.log(`📋 First CTQ sample:`, criticalToAdd[0] ? {
+                id: criticalToAdd[0].id,
+                stem: criticalToAdd[0].stem?.substring(0, 100),
+                correctAnswer: criticalToAdd[0].correctAnswer,
+                choicesCount: criticalToAdd[0].choices?.length,
+            } : null);
+        } else {
+            console.error("❌ No CTQs to add:", {
+                includeCriticalThinking,
+                ctqsLength: ctqs.length,
+                criticalThinkingQuestionsLength: criticalThinkingQuestions.length,
+                criticalThinkingQuestionsSample: criticalThinkingQuestions[0] ? {
+                    id: criticalThinkingQuestions[0].id,
+                    scope: criticalThinkingQuestions[0].scope,
+                    stem: criticalThinkingQuestions[0].stem?.substring(0, 50),
+                } : null,
+            });
         }
 
         // Generate regular questions - only generate enough to fill the remaining slots
@@ -389,6 +444,20 @@ export function useQuiz(
         }
 
         // Add critical thinking questions
+        console.log(`🔄 Adding ${criticalToAdd.length} CTQs to quiz...`);
+        console.log(`📝 CTQ Details:`, {
+            criticalToAddLength: criticalToAdd.length,
+            firstCTQ: criticalToAdd[0] ? {
+                id: criticalToAdd[0].id,
+                stem: criticalToAdd[0].stem?.substring(0, 50),
+                hasCorrectAnswer: !!criticalToAdd[0].correctAnswer,
+                correctAnswerType: typeof criticalToAdd[0].correctAnswer,
+                choicesCount: criticalToAdd[0].choices?.length,
+            } : null,
+        });
+        let addedCount = 0;
+        let skippedCount = 0;
+        
         criticalToAdd.forEach((ctq) => {
             // Validate the question before adding
             // Accept both string (multiple-choice) and array (select-all-that-apply) correctAnswer
@@ -483,7 +552,9 @@ export function useQuiz(
                     clinicalPearl: ctq.clinicalPearl,
                     medication: ctq.medication,
                 });
+                addedCount++;
             } else {
+                skippedCount++;
                 console.warn("Skipping invalid critical thinking question:", {
                     id: ctq.id,
                     hasStem: hasValidStem,
@@ -501,6 +572,13 @@ export function useQuiz(
                 });
             }
         });
+        
+        console.log(`✅ CTQ Addition Complete: ${addedCount} added, ${skippedCount} skipped`);
+        console.log(`📊 All Questions Before Shuffle:`, {
+            total: allQuestions.length,
+            ctqCount: allQuestions.filter(q => q.isCriticalThinking).length,
+            regularCount: allQuestions.filter(q => !q.isCriticalThinking).length,
+        });
 
         // Shuffle all questions together to mix them randomly
         const shuffled = allQuestions.sort(() => Math.random() - 0.5);
@@ -509,11 +587,11 @@ export function useQuiz(
         // Count critical thinking questions in final set
         const criticalInFinal = finalQuestions.filter(q => q.isCriticalThinking).length;
         const regularInFinal = finalQuestions.length - criticalInFinal;
-        console.log(`Quiz generated: ${finalQuestions.length} total questions (${criticalInFinal} critical thinking, ${regularInFinal} regular) - randomly mixed`);
+        console.log(`📊 Quiz generated: ${finalQuestions.length} total questions (${criticalInFinal} critical thinking, ${regularInFinal} regular) - randomly mixed`);
         
         // Debug logging
         if (finalQuestions.length === 0) {
-            console.warn("No questions generated:", {
+            console.warn("❌ No questions generated:", {
                 drugsCount: drugs?.length || 0,
                 criticalCount: ctqs?.length || 0,
                 includeCriticalThinking,
@@ -521,7 +599,17 @@ export function useQuiz(
                 allQuestionsCount: allQuestions.length,
             });
         } else if (criticalInFinal === 0 && ctqs && ctqs.length > 0 && includeCriticalThinking) {
-            console.warn("No critical thinking questions were included despite being available. Check validation logic.");
+            console.error("❌ CRITICAL: No critical thinking questions were included despite being available!", {
+                ctqsLength: ctqs.length,
+                criticalToAddLength: criticalToAdd.length,
+                addedCount,
+                skippedCount,
+                includeCriticalThinking,
+                allQuestionsLength: allQuestions.length,
+                finalQuestionsLength: finalQuestions.length,
+            });
+        } else if (criticalInFinal > 0) {
+            console.log(`✅ SUCCESS: ${criticalInFinal} CTQs included in quiz!`);
         }
         
         return finalQuestions;
@@ -529,15 +617,78 @@ export function useQuiz(
 
     // Always use current questions until locked (allows late-loaded critical thinking questions to be included)
     // Use locked questions if available, otherwise use current questions
+    // IMPORTANT: questions is the result of useMemo which returns finalQuestions (the mixed list with CTQs)
+    // So questions IS the final mixed list - we just need to make sure we're using it correctly
     const stableQuestions = lockedQuestionsRef.current ?? questions;
-
-    // Lock questions as soon as start === true instead of waiting for first answer
+    
+    // Debug: Log what we're actually using for rendering
     useEffect(() => {
-        if (start && !lockedQuestionsRef.current && questions.length > 0) {
-            lockedQuestionsRef.current = questions;
-            console.log("Questions locked on quiz start. Total questions:", questions.length);
+        if (start) {
+            const ctqCount = stableQuestions.filter(q => q.isCriticalThinking).length;
+            const lockedCtqCount = lockedQuestionsRef.current?.filter(q => q.isCriticalThinking).length || 0;
+            const questionsCtqCount = questions.filter(q => q.isCriticalThinking).length;
+            
+            console.log("🎯 UI Rendering from:", {
+                source: lockedQuestionsRef.current ? "lockedQuestionsRef" : "questions (useMemo result)",
+                totalQuestions: stableQuestions.length,
+                ctqCount,
+                regularCount: stableQuestions.length - ctqCount,
+                firstQuestionIsCTQ: stableQuestions[0]?.isCriticalThinking || false,
+                lockedRefCtqCount: lockedCtqCount,
+                questionsArrayCtqCount: questionsCtqCount,
+                isLocked: !!lockedQuestionsRef.current,
+                currentIndex,
+                currentQuestionIsCTQ: stableQuestions[currentIndex]?.isCriticalThinking || false,
+            });
         }
-    }, [start, questions]);
+    }, [start, stableQuestions, currentIndex, questions]);
+
+    // 🔥 Always lock the fully built question list that includes CTQs
+    // The questions array from useMemo already has everything mixed in when CTQs load
+    // But wait a bit if CTQs are enabled to ensure they're loaded
+    useEffect(() => {
+        if (start) {
+            // If CTQs are enabled, wait until we have CTQs actually included in the questions
+            // Otherwise lock immediately
+            if (!includeCriticalThinking) {
+                // No CTQs, safe to lock immediately (but only if not already locked)
+                if (!lockedQuestionsRef.current && questions.length > 0) {
+                    lockedQuestionsRef.current = questions;
+                    console.log("🔒 Questions locked (no CTQs). Total:", questions.length);
+                }
+            } else {
+                // CTQs enabled - wait for them to be ACTUALLY included in questions
+                // Check if we have CTQs in the questions array
+                const ctqCount = questions.filter(q => q.isCriticalThinking).length;
+                const hasCTQs = ctqCount > 0;
+                const hasEnoughQuestions = questions.length >= questionCount;
+                
+                // If we already have a lock, check if it needs updating (CTQs were added later)
+                if (lockedQuestionsRef.current) {
+                    const lockedCtqCount = lockedQuestionsRef.current.filter(q => q.isCriticalThinking).length;
+                    // If locked array has no CTQs but questions array now has CTQs, update the lock!
+                    if (lockedCtqCount === 0 && hasCTQs && hasEnoughQuestions) {
+                        lockedQuestionsRef.current = questions;
+                        console.log("🔄 Lock UPDATED with CTQs! Total:", questions.length, "CTQs:", ctqCount, "Regular:", questions.length - ctqCount);
+                    }
+                } else {
+                    // No lock yet - only lock if we have CTQs AND enough questions
+                    if (hasCTQs && hasEnoughQuestions) {
+                        lockedQuestionsRef.current = questions;
+                        console.log("🔒 Questions locked (CTQs included). Total:", questions.length, "CTQs:", ctqCount, "Regular:", questions.length - ctqCount);
+                    } else {
+                        console.log("⏳ Waiting for CTQs to load before locking. Current:", {
+                            totalQuestions: questions.length,
+                            ctqCount,
+                            hasCTQs,
+                            hasEnoughQuestions,
+                            expectedCount: questionCount,
+                        });
+                    }
+                }
+            }
+        }
+    }, [start, questions, questionCount, includeCriticalThinking]);
 
     // Reset quiz state when questions change (drugs or questionCount changes)
     // Only reset if questions haven't been locked yet (quiz hasn't started)
@@ -561,9 +712,22 @@ export function useQuiz(
 
     function selectAnswer(answer: string) {
         // Questions are already locked when start === true, but keep this as a safety check
+        // IMPORTANT: Only lock if CTQs are included (if they should be)
         if (!lockedQuestionsRef.current && questions.length > 0) {
-            lockedQuestionsRef.current = questions;
-            console.log("Questions locked on first answer (safety check). Total questions:", questions.length);
+            // If CTQs should be included, verify they're actually in the array before locking
+            if (includeCriticalThinking) {
+                const ctqCount = questions.filter(q => q.isCriticalThinking).length;
+                if (ctqCount > 0) {
+                    lockedQuestionsRef.current = questions;
+                    console.log("🔒 Questions locked on first answer (safety check). Total:", questions.length, "CTQs:", ctqCount);
+                } else {
+                    console.warn("⏳ Waiting to lock - CTQs should be included but not found yet");
+                }
+            } else {
+                // No CTQs expected, safe to lock
+                lockedQuestionsRef.current = questions;
+                console.log("🔒 Questions locked on first answer (safety check, no CTQs). Total:", questions.length);
+            }
         }
         
         if (finished || currentIndex >= stableQuestions.length || !current) {
@@ -614,10 +778,27 @@ export function useQuiz(
         typeof current.correct === "string" &&
         current.correct.trim().length > 0;
 
+    // Debug: Log current question details
+    useEffect(() => {
+        if (start && current) {
+            console.log("🎯 CURRENT QUESTION:", {
+                index: currentIndex,
+                isCriticalThinking: current.isCriticalThinking,
+                hasValidQuestion,
+                question: current.question?.substring(0, 50),
+                hasDrug: !!current.drug,
+                hasMedication: !!current.medication,
+                choicesCount: current.choices?.length,
+                correctAnswer: current.correct?.substring(0, 30),
+            });
+        }
+    }, [start, currentIndex, current, hasValidQuestion]);
+
     // Debug: Check for invalid first question
     if (!hasValidQuestion && current) {
-        console.warn("❌ INVALID FIRST QUESTION", {
+        console.warn("❌ INVALID QUESTION", {
             currentIndex,
+            isCriticalThinking: current.isCriticalThinking,
             current,
             question: current.question,
             correct: current.correct,
