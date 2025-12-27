@@ -2,6 +2,7 @@ import { useRouter } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import type { Drug } from "../hooks/getDrugs";
+import { useAuth } from "../hooks/useAuth";
 import { useCriticalThinkingQuestions } from "../hooks/useCriticalThinkingQuestions";
 import { useQuiz } from "../hooks/useQuiz";
 import { useStatistics } from "../hooks/useStatistics";
@@ -19,15 +20,24 @@ interface Props {
 
 export default function QuizCard({ drugs, start, questionCount = 10, includeCriticalThinking = false }: Props) {
     const router = useRouter();
+    const { user } = useAuth();
     const { scope } = useUserScope();
     const { questions: criticalQuestions, loading: criticalLoading } = useCriticalThinkingQuestions(scope);
     
-    // Stabilize critical questions array to prevent unnecessary re-renders
-    const stableCriticalQuestions = useMemo(() => {
-        return includeCriticalThinking ? criticalQuestions : [];
-    }, [includeCriticalThinking, criticalQuestions]);
+    // Safety check: Only allow critical thinking for premium users
+    const canUseCriticalThinking = user.membershipTier === "premium" && includeCriticalThinking;
     
-    const quiz = useQuiz(drugs, questionCount, stableCriticalQuestions);
+    // Pass raw criticalQuestions to useQuiz - let it handle filtering based on includeCriticalThinking
+    // But respect premium status: only pass includeCriticalThinking if user is premium
+    const effectiveIncludeCriticalThinking = canUseCriticalThinking && includeCriticalThinking;
+    
+    const quiz = useQuiz(
+        drugs,
+        questionCount,
+        criticalQuestions, // Pass raw questions, not filtered
+        effectiveIncludeCriticalThinking, // Only true if premium AND checkbox checked
+        start
+    );
     const { recordQuiz } = useStatistics();
     const [selected, setSelected] = useState<string | null>(null);
     const [showRationale, setShowRationale] = useState(false);
@@ -44,28 +54,43 @@ export default function QuizCard({ drugs, start, questionCount = 10, includeCrit
         }
         setSelected(null);
         setShowRationale(false);
-        // Ensure content is visible when quiz starts
+        // Ensure content is visible when quiz starts - set immediately, don't animate
         fadeAnim.setValue(1);
+        prevIndexRef.current = -1; // Reset to allow first question to animate
     }, [start, fadeAnim]);
 
     // Reset selection and fade animation when question changes
     // Use a ref to track previous index to avoid double-triggering
     useEffect(() => {
-        if (!start || !quiz || !quiz.question) {
+        if (!start || !quiz || !quiz.question || !quiz.choices || quiz.choices.length === 0) {
             // Ensure content is visible if quiz isn't ready
             fadeAnim.setValue(1);
             return;
         }
         
         // Only animate if the index actually changed
-        if (prevIndexRef.current === quiz.currentIndex) return;
+        if (prevIndexRef.current === quiz.currentIndex) {
+            // Same question, ensure it's visible
+            fadeAnim.setValue(1);
+            return;
+        }
+        
+        // First question should be immediately visible, no animation
+        if (prevIndexRef.current === -1) {
+            prevIndexRef.current = quiz.currentIndex;
+            setSelected(null);
+            setShowRationale(false);
+            fadeAnim.setValue(1);
+            return;
+        }
+        
         prevIndexRef.current = quiz.currentIndex;
         
         // Reset state
         setSelected(null);
         setShowRationale(false);
         
-        // Animate in smoothly
+        // Animate in smoothly for subsequent questions
         fadeAnim.setValue(0);
         Animated.timing(fadeAnim, {
             toValue: 1,
@@ -77,7 +102,7 @@ export default function QuizCard({ drugs, start, questionCount = 10, includeCrit
                 fadeAnim.setValue(1);
             }
         });
-    }, [quiz.currentIndex, start, quiz.question, fadeAnim]);
+    }, [quiz.currentIndex, start, quiz.question, quiz.choices, fadeAnim]);
 
     // Record statistics when quiz is finished
     useEffect(() => {
@@ -103,7 +128,7 @@ export default function QuizCard({ drugs, start, questionCount = 10, includeCrit
     if (!start) return null;
     
     // Wait for critical thinking questions to load if needed
-    if (includeCriticalThinking && criticalLoading) {
+    if (canUseCriticalThinking && criticalLoading) {
         return (
             <View style={styles.container}>
                 <Text style={styles.loadingText}>Loading critical thinking questions...</Text>
@@ -119,41 +144,20 @@ export default function QuizCard({ drugs, start, questionCount = 10, includeCrit
         );
     }
     
+    // Don't render if no questions available yet
     if (quiz.total === 0) {
-        console.warn("No questions available:", {
-            drugsCount: drugs?.length || 0,
-            criticalCount: criticalQuestions.length,
-            includeCriticalThinking,
-            questionCount,
-        });
         return (
             <View style={styles.container}>
-                <Text style={styles.loadingText}>
-                    No questions available. Please check your drug selection and try again.
-                </Text>
-                <Text style={[styles.loadingText, { fontSize: 12, marginTop: spacing.sm }]}>
-                    Drugs: {drugs?.length || 0} | Critical: {criticalQuestions.length} | Requested: {questionCount}
-                </Text>
-                <Pressable style={styles.backButton} onPress={() => router.replace("/quiz")}>
-                    <Text style={styles.backButtonText}>Back to Quiz Menu</Text>
-                </Pressable>
+                <Text style={styles.loadingText}>Preparing questions...</Text>
             </View>
         );
     }
     
-    if (!quiz.question || !quiz.choices || quiz.choices.length === 0) {
-        console.warn("Invalid question state:", {
-            hasQuestion: !!quiz.question,
-            choicesCount: quiz.choices?.length || 0,
-            currentIndex: quiz.currentIndex,
-            total: quiz.total,
-        });
+    // Don't render if current question is invalid or not ready
+    if (!quiz.question || !quiz.choices || quiz.choices.length === 0 || quiz.currentIndex >= quiz.total) {
         return (
             <View style={styles.container}>
                 <Text style={styles.loadingText}>Preparing question...</Text>
-                <Text style={[styles.loadingText, { fontSize: 12, marginTop: spacing.sm }]}>
-                    Total questions: {quiz.total} | Current index: {quiz.currentIndex}
-                </Text>
             </View>
         );
     }

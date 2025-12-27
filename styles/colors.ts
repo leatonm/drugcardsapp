@@ -7,7 +7,7 @@ export const colors = {
 
     // Text
     textPrimary: "#E0E5EB",   // Soft off-white (great on dark cards)
-    textSecondary: "#6d7985ff", // Muted gray-blue
+    textSecondary: "#E0E5EB", // Muted gray-blue
     textMuted: "#A8B3BD",     // Muted text color
 
     // Backgrounds

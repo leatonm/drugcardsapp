@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
         flexGrow: 1,
         minHeight: "100%",
         justifyContent: "center",
-        maxWidth: 480,
+        maxWidth: 400,
         alignSelf: "center",
         width: "100%",
         alignItems: "center",

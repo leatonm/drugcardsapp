@@ -33,6 +33,46 @@ function shuffleArray<T>(array: T[]): T[] {
     return shuffled;
 }
 
+// Normalize string for comparison (trim, lowercase, remove extra spaces)
+function normalizeString(str: string): string {
+    return str.trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+// Check if two strings are similar (normalized comparison)
+function areSimilar(str1: string, str2: string): boolean {
+    const norm1 = normalizeString(str1);
+    const norm2 = normalizeString(str2);
+    
+    // Exact match after normalization
+    if (norm1 === norm2) return true;
+    
+    // Check if one contains the other (for cases like "2-5 mg" vs "2-5mg")
+    if (norm1.length > 0 && norm2.length > 0) {
+        const longer = norm1.length > norm2.length ? norm1 : norm2;
+        const shorter = norm1.length > norm2.length ? norm2 : norm1;
+        if (longer.includes(shorter) && shorter.length >= Math.min(5, longer.length * 0.7)) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+// Check if an answer is distinct from all existing answers
+function isDistinct(answer: string, existingAnswers: string[]): boolean {
+    if (!answer || answer.trim() === "" || answer === "N/A") {
+        return false;
+    }
+    
+    for (const existing of existingAnswers) {
+        if (areSimilar(answer, existing)) {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
 function generateQuestion(drug: Drug, allDrugs: Drug[]): Question | null {
     // Validate required fields
     if (!drug.class || !drug.mechanism || !drug.indications?.length || !drug.contraindications?.length) {
@@ -114,69 +154,121 @@ function generateQuestion(drug: Drug, allDrugs: Drug[]): Question | null {
         return null;
     }
 
-    // Generate wrong answers - optimized approach
-    // First, collect all possible wrong answers from other drugs
-    const possibleWrongAnswers = new Set<string>();
+    // Generate wrong answers - collect all distinct answers from other drugs
+    const possibleWrongAnswers: string[] = [];
     
     for (const rand of allDrugs) {
         if (rand.id === drug.id) continue; // Skip the current drug
         
-        let wrong = "";
+        let wrongAnswers: string[] = [];
+        
         switch (type) {
             case "adult":
-                wrong = rand.adultDose ?? "";
+                if (rand.adultDose) wrongAnswers = [rand.adultDose];
                 break;
             case "pediatric":
-                wrong = rand.pediatricDose ?? "";
+                if (rand.pediatricDose) wrongAnswers = [rand.pediatricDose];
                 break;
             case "class":
-                wrong = rand.class ?? "";
+                if (rand.class) wrongAnswers = [rand.class];
                 break;
             case "mechanism":
-                wrong = rand.mechanism ?? "";
+                if (rand.mechanism) wrongAnswers = [rand.mechanism];
                 break;
             case "indication":
+                // Collect ALL indications from this drug for more variety
                 if (rand.indications?.length) {
-                    const randomIndex = Math.floor(Math.random() * rand.indications.length);
-                    wrong = rand.indications[randomIndex];
+                    wrongAnswers = rand.indications;
                 }
                 break;
             case "contra":
+                // Collect ALL contraindications from this drug for more variety
                 if (rand.contraindications?.length) {
-                    const randomIndex = Math.floor(Math.random() * rand.contraindications.length);
-                    wrong = rand.contraindications[randomIndex];
+                    wrongAnswers = rand.contraindications;
                 }
                 break;
             case "interaction":
+                // Collect ALL interactions from this drug for more variety
                 if (rand.interactions?.length) {
-                    const randomIndex = Math.floor(Math.random() * rand.interactions.length);
-                    wrong = rand.interactions[randomIndex];
+                    wrongAnswers = rand.interactions;
                 }
                 break;
             case "education":
+                // Collect ALL education items from this drug for more variety
                 if (rand.education?.length) {
-                    const randomIndex = Math.floor(Math.random() * rand.education.length);
-                    wrong = rand.education[randomIndex];
+                    wrongAnswers = rand.education;
                 }
                 break;
         }
 
-        if (wrong && wrong !== correctAnswer) {
-            possibleWrongAnswers.add(wrong);
+        // Add all wrong answers that are distinct from the correct answer
+        for (const wrong of wrongAnswers) {
+            if (wrong && !areSimilar(wrong, correctAnswer)) {
+                possibleWrongAnswers.push(wrong);
+            }
         }
     }
 
-    // Convert to array and shuffle, then take 2 random ones
-    const wrongAnswersArray = Array.from(possibleWrongAnswers);
-    const shuffledWrong = shuffleArray(wrongAnswersArray);
-    const wrongAnswers = new Set(shuffledWrong.slice(0, 2));
-
-    // If we couldn't get enough wrong answers, fill with placeholder
-    while (wrongAnswers.size < 2) {
-        wrongAnswers.add("N/A");
+    // Filter to only distinct answers (no duplicates or similar answers)
+    const distinctWrongAnswers: string[] = [];
+    for (const answer of possibleWrongAnswers) {
+        if (isDistinct(answer, [correctAnswer, ...distinctWrongAnswers])) {
+            distinctWrongAnswers.push(answer);
+        }
     }
 
-    const choices = shuffleArray([...wrongAnswers, correctAnswer]);
+    // Shuffle and take 2 random distinct wrong answers
+    const shuffledWrong = shuffleArray(distinctWrongAnswers);
+    const selectedWrongAnswers = shuffledWrong.slice(0, 2);
+
+    // If we couldn't get enough distinct wrong answers, try to fill with more
+    // by being less strict about similarity, but still avoid exact matches
+    let finalWrongAnswers = [...selectedWrongAnswers];
+    if (finalWrongAnswers.length < 2) {
+        const remaining = shuffledWrong.slice(2);
+        for (const answer of remaining) {
+            if (finalWrongAnswers.length >= 2) break;
+            // Only check against correct answer and existing wrong answers (not similarity)
+            if (answer && normalizeString(answer) !== normalizeString(correctAnswer)) {
+                const isDuplicate = finalWrongAnswers.some(existing => 
+                    normalizeString(existing) === normalizeString(answer)
+                );
+                if (!isDuplicate) {
+                    finalWrongAnswers.push(answer);
+                }
+            }
+        }
+    }
+
+    // If still not enough, fill with placeholder
+    while (finalWrongAnswers.length < 2) {
+        finalWrongAnswers.push("N/A");
+    }
+
+    // Ensure all choices are distinct before shuffling
+    const allChoices = [correctAnswer, ...finalWrongAnswers];
+    const distinctChoices: string[] = [correctAnswer];
+    
+    for (const choice of finalWrongAnswers) {
+        if (isDistinct(choice, distinctChoices)) {
+            distinctChoices.push(choice);
+        }
+    }
+
+    // If we lost a wrong answer due to similarity, try to find a replacement
+    if (distinctChoices.length < 3) {
+        const used = new Set(distinctChoices.map(c => normalizeString(c)));
+        for (const answer of shuffledWrong) {
+            if (distinctChoices.length >= 3) break;
+            const normalized = normalizeString(answer);
+            if (!used.has(normalized) && normalized !== normalizeString(correctAnswer)) {
+                distinctChoices.push(answer);
+                used.add(normalized);
+            }
+        }
+    }
+
+    const choices = shuffleArray(distinctChoices);
 
     return {
         question: questionText,
@@ -205,7 +297,9 @@ export type QuizAnswer = {
 export function useQuiz(
     drugs: Drug[],
     questionCount: number = 10,
-    criticalThinkingQuestions: CriticalThinkingQuestion[] = []
+    criticalThinkingQuestions: CriticalThinkingQuestion[] = [],
+    includeCriticalThinking: boolean = true,
+    start?: boolean
 ) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [score, setScore] = useState(0);
@@ -225,23 +319,28 @@ export function useQuiz(
             medication?: string;
         }> = [];
 
-        // First, determine how many critical thinking questions to include (30% of total)
+        // Filter CTQs based on includeCriticalThinking flag
+        const ctqs = includeCriticalThinking
+            ? criticalThinkingQuestions
+            : []; // Force none if unchecked
+
+        // First, determine how many critical thinking questions to include (50% of total for 50/50 split)
         let criticalCount = 0;
-        let criticalToAdd: typeof criticalThinkingQuestions = [];
+        let criticalToAdd: typeof ctqs = [];
         
-        if (criticalThinkingQuestions && criticalThinkingQuestions.length > 0) {
-            // Calculate how many critical questions to add (30% of questionCount, but not more than available)
+        if (ctqs && ctqs.length > 0) {
+            // Calculate how many critical questions to add (50% of questionCount, but not more than available)
             criticalCount = Math.min(
-                Math.floor(questionCount * 0.3),
-                criticalThinkingQuestions.length
+                Math.floor(questionCount * 0.5),
+                ctqs.length
             );
             
             // Shuffle and select critical questions
-            const criticalCopy = [...criticalThinkingQuestions];
+            const criticalCopy = [...ctqs];
             const shuffledCritical = criticalCopy.sort(() => Math.random() - 0.5);
             criticalToAdd = shuffledCritical.slice(0, criticalCount);
             
-            console.log(`Will mix in ${criticalCount} critical thinking questions out of ${criticalThinkingQuestions.length} available`);
+            console.log(`Will mix in ${criticalCount} critical thinking questions (50/50 split) out of ${ctqs.length} available`);
         }
 
         // Generate regular questions - only generate enough to fill the remaining slots
@@ -292,18 +391,93 @@ export function useQuiz(
         // Add critical thinking questions
         criticalToAdd.forEach((ctq) => {
             // Validate the question before adding
-            // Ensure correctAnswer is a string (not an array for select-all-that-apply)
-            const isValid = ctq.stem && 
-                typeof ctq.correctAnswer === "string" && 
-                ctq.correctAnswer.length > 0 &&
-                Array.isArray(ctq.choices) && 
-                ctq.choices.length > 0;
+            // Accept both string (multiple-choice) and array (select-all-that-apply) correctAnswer
+            const hasValidStem = ctq.stem && 
+                typeof ctq.stem === "string" &&
+                ctq.stem.trim().length > 0;
+            
+            // Accept both string (multiple-choice) and array (select-all-that-apply) correctAnswer
+            const hasValidCorrectAnswer = 
+                (typeof ctq.correctAnswer === "string" && ctq.correctAnswer.trim().length > 0) ||
+                (Array.isArray(ctq.correctAnswer) && ctq.correctAnswer.length > 0);
+            
+            const hasValidChoices = Array.isArray(ctq.choices) && 
+                ctq.choices.length > 0 &&
+                ctq.choices.every(c => typeof c === "string" && c.trim().length > 0);
+            
+            const isValid = hasValidStem && 
+                hasValidCorrectAnswer && 
+                hasValidChoices;
             
             if (isValid) {
+                // For string answers, ensure correct answer is in choices
+                if (typeof ctq.correctAnswer === "string") {
+                    const correctAnswerStr = ctq.correctAnswer.trim();
+                    const correctInChoices = ctq.choices.some(c => 
+                        c.trim().toLowerCase() === correctAnswerStr.toLowerCase()
+                    );
+                    
+                    if (!correctInChoices) {
+                        console.warn("Critical thinking question correct answer not in choices:", {
+                            id: ctq.id,
+                            correctAnswer: ctq.correctAnswer,
+                            choices: ctq.choices,
+                        });
+                    }
+                }
+                
+                // Store correctAnswer as-is (string or array) for select-all-that-apply support
+                // For now, convert array to string for compatibility with current quiz system
+                // TODO: Add proper select-all-that-apply question support
+                let correctAnswer: string;
+                if (typeof ctq.correctAnswer === "string") {
+                    correctAnswer = ctq.correctAnswer.trim();
+                } else if (Array.isArray(ctq.correctAnswer)) {
+                    // TypeScript type guard: ensure it's an array of strings
+                    const answerArray: string[] = ctq.correctAnswer;
+                    correctAnswer = answerArray.length > 0 ? answerArray.join(", ") : ""; // Convert array to comma-separated string for now
+                } else {
+                    correctAnswer = "";
+                }
+                
+                // 🛑 FIX: Prevent blank first questions
+                // If correctAnswer is empty after parsing, skip this CTQ
+                if (!correctAnswer || correctAnswer.trim().length === 0) {
+                    console.warn("⚠️ Skipping CTQ with empty correctAnswer:", ctq.id);
+                    return; // Do not push this question
+                }
+                
+                // Build choices array and ensure correct answer is included
+                const choices = ctq.choices.map(c => c.trim());
+                
+                // If the correct answer was created from a string, ensure it's selectable
+                if (typeof ctq.correctAnswer === "string") {
+                    const normCorrect = ctq.correctAnswer.trim().toLowerCase();
+                    const inChoices = choices.some(c => c.trim().toLowerCase() === normCorrect);
+                    if (!inChoices) {
+                        choices.push(ctq.correctAnswer.trim());
+                    }
+                }
+                
+                // If the correct answer was created from an array, ensure all array items are in choices
+                if (Array.isArray(ctq.correctAnswer)) {
+                    ctq.correctAnswer.forEach(a => {
+                        const trimmedAnswer = a.trim();
+                        const normAnswer = trimmedAnswer.toLowerCase();
+                        const inChoices = choices.some(c => c.trim().toLowerCase() === normAnswer);
+                        if (!inChoices) {
+                            choices.push(trimmedAnswer);
+                        }
+                    });
+                }
+                
+                // Shuffle choices to randomize position of correct answer
+                const shuffledChoices = [...choices].sort(() => Math.random() - 0.5);
+                
                 allQuestions.push({
-                    question: ctq.stem,
-                    correct: ctq.correctAnswer,
-                    choices: ctq.choices,
+                    question: ctq.stem.trim(),
+                    correct: correctAnswer,
+                    choices: shuffledChoices,
                     isCriticalThinking: true,
                     rationale: ctq.rationale,
                     clinicalPearl: ctq.clinicalPearl,
@@ -312,8 +486,16 @@ export function useQuiz(
             } else {
                 console.warn("Skipping invalid critical thinking question:", {
                     id: ctq.id,
-                    hasStem: !!ctq.stem,
+                    hasStem: hasValidStem,
+                    stemType: typeof ctq.stem,
+                    stemLength: ctq.stem?.length || 0,
+                    hasValidCorrectAnswer,
                     correctAnswerType: typeof ctq.correctAnswer,
+                    correctAnswerIsArray: Array.isArray(ctq.correctAnswer),
+                    correctAnswerLength: typeof ctq.correctAnswer === "string" 
+                        ? ctq.correctAnswer.length 
+                        : (Array.isArray(ctq.correctAnswer) ? (ctq.correctAnswer as string[]).length : 0),
+                    hasValidChoices,
                     hasChoices: Array.isArray(ctq.choices),
                     choicesLength: ctq.choices?.length || 0,
                 });
@@ -333,39 +515,35 @@ export function useQuiz(
         if (finalQuestions.length === 0) {
             console.warn("No questions generated:", {
                 drugsCount: drugs?.length || 0,
-                criticalCount: criticalThinkingQuestions?.length || 0,
+                criticalCount: ctqs?.length || 0,
+                includeCriticalThinking,
                 questionCount,
                 allQuestionsCount: allQuestions.length,
             });
-        } else if (criticalInFinal === 0 && criticalThinkingQuestions && criticalThinkingQuestions.length > 0) {
+        } else if (criticalInFinal === 0 && ctqs && ctqs.length > 0 && includeCriticalThinking) {
             console.warn("No critical thinking questions were included despite being available. Check validation logic.");
         }
         
         return finalQuestions;
-    }, [drugs, questionCount, criticalThinkingQuestions]);
+    }, [drugs, questionCount, criticalThinkingQuestions, includeCriticalThinking]);
 
-    // Lock questions once they're first available to prevent regeneration when critical thinking questions load
-    // This prevents questions from changing when critical thinking questions load asynchronously
-    const stableQuestions = useMemo(() => {
-        // If we've already locked questions, always use the locked version
-        if (lockedQuestionsRef.current) {
-            return lockedQuestionsRef.current;
-        }
-        
-        // If we have questions and haven't locked yet, lock them now
-        if (questions.length > 0) {
+    // Always use current questions until locked (allows late-loaded critical thinking questions to be included)
+    // Use locked questions if available, otherwise use current questions
+    const stableQuestions = lockedQuestionsRef.current ?? questions;
+
+    // Lock questions as soon as start === true instead of waiting for first answer
+    useEffect(() => {
+        if (start && !lockedQuestionsRef.current && questions.length > 0) {
             lockedQuestionsRef.current = questions;
-            return questions;
+            console.log("Questions locked on quiz start. Total questions:", questions.length);
         }
-        
-        return questions;
-    }, [questions]);
+    }, [start, questions]);
 
     // Reset quiz state when questions change (drugs or questionCount changes)
-    // Only reset if questions haven't been locked yet
+    // Only reset if questions haven't been locked yet (quiz hasn't started)
     useEffect(() => {
         // If questions are empty, don't reset (wait for them to load)
-        if (stableQuestions.length === 0) return;
+        if (questions.length === 0) return;
         
         // Only reset if we haven't locked questions yet (quiz hasn't started)
         if (!lockedQuestionsRef.current) {
@@ -374,11 +552,20 @@ export function useQuiz(
             setFinished(false);
             setAnswers([]);
         }
-    }, [stableQuestions.length]);
+    }, [questions.length]);
 
-    const current = stableQuestions[currentIndex];
+    // Ensure we have a valid current question
+    const current = stableQuestions.length > 0 && currentIndex < stableQuestions.length 
+        ? stableQuestions[currentIndex] 
+        : undefined;
 
     function selectAnswer(answer: string) {
+        // Questions are already locked when start === true, but keep this as a safety check
+        if (!lockedQuestionsRef.current && questions.length > 0) {
+            lockedQuestionsRef.current = questions;
+            console.log("Questions locked on first answer (safety check). Total questions:", questions.length);
+        }
+        
         if (finished || currentIndex >= stableQuestions.length || !current) {
             return;
         }
@@ -415,15 +602,28 @@ export function useQuiz(
         }
     }
 
-    // Ensure we have a valid current question
+    // Ensure we have a valid current question - don't render if invalid
     const hasValidQuestion = current && 
         current.question && 
         typeof current.question === "string" &&
+        current.question.trim().length > 0 &&
         current.choices && 
         Array.isArray(current.choices) &&
         current.choices.length > 0 &&
-        current.correct &&
-        typeof current.correct === "string";
+        current.correct && 
+        typeof current.correct === "string" &&
+        current.correct.trim().length > 0;
+
+    // Debug: Check for invalid first question
+    if (!hasValidQuestion && current) {
+        console.warn("❌ INVALID FIRST QUESTION", {
+            currentIndex,
+            current,
+            question: current.question,
+            correct: current.correct,
+            choices: current.choices,
+        });
+    }
 
     return {
         currentDrug: current?.drug,
@@ -434,7 +634,7 @@ export function useQuiz(
         total: stableQuestions.length,
         selectAnswer,
         next,
-        finished: finished || questions.length === 0,
+        finished: finished || stableQuestions.length === 0,
         score,
         answers, // All answers for review
         hasAnswered: false, // Removed - QuizCard manages this state

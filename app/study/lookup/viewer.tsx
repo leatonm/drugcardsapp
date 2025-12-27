@@ -12,18 +12,20 @@ export default function LookupViewer() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.banner}>
-        <Text style={styles.bannerText}>DRUG LOOKUP</Text>
+      <View style={styles.contentWrapper}>
+        <View style={styles.banner}>
+          <Text style={styles.bannerText}>DRUG LOOKUP</Text>
+        </View>
+
+        <FlashCard drug={parsed} />
+
+        <Pressable
+          style={styles.back}
+          onPress={() => router.replace("/study/lookup")}
+        >
+          <Text style={styles.backText}>Back to List</Text>
+        </Pressable>
       </View>
-
-      <FlashCard drug={parsed} />
-
-      <Pressable
-        style={styles.back}
-        onPress={() => router.replace("/study/lookup")}
-      >
-        <Text style={styles.backText}>Back to List</Text>
-      </Pressable>
     </View>
   );
 }
@@ -32,8 +34,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  contentWrapper: {
+    flex: 1,
     paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    maxWidth: 400,
+    alignSelf: "center",
+    width: "100%",
     justifyContent: "center",
+    alignItems: "center",
   },
   banner: {
     alignSelf: "center",

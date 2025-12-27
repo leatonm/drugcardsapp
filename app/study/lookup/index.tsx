@@ -125,20 +125,31 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-    paddingHorizontal: spacing.lg,
   },
 
   header: {
-    paddingTop: spacing.lg,     // 👈 pushes logo down naturally
+    paddingTop: spacing.lg,
+    paddingHorizontal: spacing.lg,
     alignItems: "center",
+    maxWidth: 400,
+    alignSelf: "center",
+    width: "100%",
   },
   content: {
     flex: 1,
     paddingTop: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    maxWidth: 400,
+    alignSelf: "center",
+    width: "100%",
   },
   footer: {
-    paddingBottom: spacing.lg,  // 👈 keeps Back button off screen edge
+    paddingBottom: spacing.lg,
+    paddingHorizontal: spacing.lg,
     alignItems: "center",
+    maxWidth: 400,
+    alignSelf: "center",
+    width: "100%",
   },
   banner: {
     alignSelf: "center",

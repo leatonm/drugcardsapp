@@ -173,15 +173,17 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: colors.background,
-        paddingHorizontal: spacing.lg,
     },
 
     /* 🔑 Matches Home / Study / Quiz alignment */
     contentWrapper: {
         flex: 1,
+        padding: spacing.md,
+        paddingHorizontal: spacing.lg,
+        maxWidth: 400,
+        alignSelf: "center",
+        width: "100%",
         justifyContent: "center",
-        alignItems: "center",
-        paddingBottom: 120,
     },
 
     /* 🟥 QUIZ MODE BANNER */
@@ -191,18 +193,20 @@ const styles = StyleSheet.create({
         paddingHorizontal: spacing.xl,
         borderRadius: 20,
         marginBottom: spacing.lg,
+        alignSelf: "center",
     },
     modeBannerText: {
         color: colors.danger,
         fontSize: 16,
         fontWeight: "700",
         letterSpacing: 1.2,
+        textAlign: "center",
     },
 
     title: {
         fontSize: 22,
-        fontWeight: "700",
-        color: colors.textPrimary,
+        fontWeight: "800",
+        color: "#1A1A1A",
         marginBottom: spacing.lg,
         textAlign: "center",
     },
@@ -213,6 +217,7 @@ const styles = StyleSheet.create({
         paddingVertical: spacing.md,
         borderRadius: 16,
         alignItems: "center",
+        alignSelf: "center",
         marginBottom: spacing.md,
         shadowColor: "#000",
         shadowOpacity: 0.2,
@@ -232,6 +237,7 @@ const styles = StyleSheet.create({
         paddingVertical: spacing.md,
         borderRadius: 16,
         alignItems: "center",
+        alignSelf: "center",
         shadowColor: "#000",
         shadowOpacity: 0.1,
         shadowRadius: 5,
@@ -312,12 +318,15 @@ const styles = StyleSheet.create({
     checkboxContainer: {
         marginTop: spacing.md,
         marginBottom: spacing.sm,
+        alignItems: "center",
+        width: "100%",
     },
 
     checkbox: {
         flexDirection: "row",
         alignItems: "center",
         padding: spacing.sm,
+        alignSelf: "center",
     },
 
     checkboxIcon: {
