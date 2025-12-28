@@ -1,7 +1,7 @@
 // app/quiz/viewer/index.tsx
-import React, { useMemo } from "react";
-import { View, StyleSheet, Text, Pressable, ScrollView } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useMemo } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import QuizCard from "../../../components/QuizCard";
 import { colors } from "../../../styles/colors";
 import { spacing } from "../../../styles/spacing";

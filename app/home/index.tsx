@@ -140,12 +140,15 @@ export default function HomeScreen() {
                 </View>
 
                 {/* Footer Links */}
-                <Pressable
-                    onPress={() => setDisclaimerVisible(true)}
-                    style={styles.footerLink}
-                >
-                    <Text style={styles.footerLinkText}>Disclaimer</Text>
-                </Pressable>
+                <View style={styles.footer}>
+                    <Pressable
+                        onPress={() => setDisclaimerVisible(true)}
+                        style={styles.footerLink}
+                    >
+                        <Text style={styles.footerLinkText}>Disclaimer</Text>
+                    </Pressable>
+                    <Text style={styles.versionText}>v1.0.0</Text>
+                </View>
             </View>
 
             {/* SCOPE MODAL */}
@@ -384,16 +387,33 @@ const styles = StyleSheet.create({
         textAlign: "center",
     },
 
-    /* Footer Links */
+    /* Footer */
+    footer: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        paddingVertical: spacing.sm,
+        marginTop: spacing.md,
+        paddingTop: spacing.md,
+        borderTopWidth: 1,
+        borderTopColor: "rgba(0, 0, 0, 0.08)",
+    },
     footerLink: {
         paddingVertical: spacing.xs,
-        alignItems: "center",
+        paddingHorizontal: spacing.xs,
     },
     footerLinkText: {
         fontSize: 12,
-        color: "#4A5568",
-        textDecorationLine: "underline",
+        color: "#6B7280",
+        fontWeight: "600",
+        letterSpacing: 0.3,
+    },
+    versionText: {
+        fontSize: 11,
+        color: "#9CA3AF",
         fontWeight: "500",
+        letterSpacing: 0.5,
+        fontFamily: "monospace",
     },
 
     modalOverlay: {

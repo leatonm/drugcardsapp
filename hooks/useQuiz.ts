@@ -617,9 +617,23 @@ export function useQuiz(
 
     // Always use current questions until locked (allows late-loaded critical thinking questions to be included)
     // Use locked questions if available, otherwise use current questions
-    // IMPORTANT: questions is the result of useMemo which returns finalQuestions (the mixed list with CTQs)
-    // So questions IS the final mixed list - we just need to make sure we're using it correctly
-    const stableQuestions = lockedQuestionsRef.current ?? questions;
+    // IMPORTANT: If CTQs are needed but the lock doesn't have them yet, use current questions
+    // This ensures we wait for CTQs before locking
+    const stableQuestions = (() => {
+        if (lockedQuestionsRef.current) {
+            // If CTQs are needed, verify the lock has them
+            if (includeCriticalThinking) {
+                const lockedCtqCount = lockedQuestionsRef.current.filter(q => q.isCriticalThinking).length;
+                if (lockedCtqCount === 0) {
+                    // Lock exists but no CTQs - use current questions (CTQs might have loaded)
+                    console.log("⚠️ Lock exists but no CTQs found, using current questions");
+                    return questions;
+                }
+            }
+            return lockedQuestionsRef.current;
+        }
+        return questions;
+    })();
     
     // Debug: Log what we're actually using for rendering
     useEffect(() => {
@@ -643,49 +657,56 @@ export function useQuiz(
         }
     }, [start, stableQuestions, currentIndex, questions]);
 
-    // 🔥 Always lock the fully built question list that includes CTQs
-    // The questions array from useMemo already has everything mixed in when CTQs load
-    // But wait a bit if CTQs are enabled to ensure they're loaded
+    // 🔥 Lock the question list once when quiz starts
+    // Simple approach: Lock when we have enough questions (including CTQs if needed)
+    // Once locked, never update it (prevents question shuffling during quiz)
     useEffect(() => {
-        if (start) {
-            // If CTQs are enabled, wait until we have CTQs actually included in the questions
-            // Otherwise lock immediately
-            if (!includeCriticalThinking) {
-                // No CTQs, safe to lock immediately (but only if not already locked)
-                if (!lockedQuestionsRef.current && questions.length > 0) {
-                    lockedQuestionsRef.current = questions;
-                    console.log("🔒 Questions locked (no CTQs). Total:", questions.length);
+        if (!start) {
+            return;
+        }
+        
+        // Check if we have enough questions
+        const hasEnoughQuestions = questions.length >= questionCount;
+        
+        if (!includeCriticalThinking) {
+            // No CTQs needed - lock immediately if we have enough questions
+            if (!lockedQuestionsRef.current && hasEnoughQuestions) {
+                lockedQuestionsRef.current = questions;
+                console.log("🔒 Questions locked (no CTQs). Total:", questions.length);
+            }
+        } else {
+            // CTQs are needed - CRITICAL: wait until we have CTQs in the questions array
+            const ctqCount = questions.filter(q => q.isCriticalThinking).length;
+            const hasCTQs = ctqCount > 0;
+            
+            // Also verify we have the expected number of CTQs (50% of total)
+            const expectedCTQCount = Math.floor(questionCount * 0.5);
+            const hasExpectedCTQs = ctqCount >= expectedCTQCount;
+            
+            // If we have a lock but it doesn't have CTQs, clear it (shouldn't happen, but safety check)
+            if (lockedQuestionsRef.current) {
+                const lockedCtqCount = lockedQuestionsRef.current.filter(q => q.isCriticalThinking).length;
+                if (lockedCtqCount === 0 && hasCTQs && hasEnoughQuestions && hasExpectedCTQs) {
+                    console.log("⚠️ Clearing incorrect lock (no CTQs), re-locking with CTQs");
+                    lockedQuestionsRef.current = null;
                 }
-            } else {
-                // CTQs enabled - wait for them to be ACTUALLY included in questions
-                // Check if we have CTQs in the questions array
-                const ctqCount = questions.filter(q => q.isCriticalThinking).length;
-                const hasCTQs = ctqCount > 0;
-                const hasEnoughQuestions = questions.length >= questionCount;
-                
-                // If we already have a lock, check if it needs updating (CTQs were added later)
-                if (lockedQuestionsRef.current) {
-                    const lockedCtqCount = lockedQuestionsRef.current.filter(q => q.isCriticalThinking).length;
-                    // If locked array has no CTQs but questions array now has CTQs, update the lock!
-                    if (lockedCtqCount === 0 && hasCTQs && hasEnoughQuestions) {
-                        lockedQuestionsRef.current = questions;
-                        console.log("🔄 Lock UPDATED with CTQs! Total:", questions.length, "CTQs:", ctqCount, "Regular:", questions.length - ctqCount);
-                    }
-                } else {
-                    // No lock yet - only lock if we have CTQs AND enough questions
-                    if (hasCTQs && hasEnoughQuestions) {
-                        lockedQuestionsRef.current = questions;
-                        console.log("🔒 Questions locked (CTQs included). Total:", questions.length, "CTQs:", ctqCount, "Regular:", questions.length - ctqCount);
-                    } else {
-                        console.log("⏳ Waiting for CTQs to load before locking. Current:", {
-                            totalQuestions: questions.length,
-                            ctqCount,
-                            hasCTQs,
-                            hasEnoughQuestions,
-                            expectedCount: questionCount,
-                        });
-                    }
-                }
+            }
+            
+            // Only lock if we don't have a lock yet AND we have CTQs
+            if (!lockedQuestionsRef.current && hasCTQs && hasEnoughQuestions && hasExpectedCTQs) {
+                lockedQuestionsRef.current = questions;
+                const regularCount = questions.length - ctqCount;
+                console.log("🔒 Questions locked (CTQs included). Total:", questions.length, "CTQs:", ctqCount, "Regular:", regularCount);
+            } else if (!lockedQuestionsRef.current) {
+                console.log("⏳ Waiting for CTQs to load before locking. Current:", {
+                    totalQuestions: questions.length,
+                    ctqCount,
+                    expectedCTQCount,
+                    hasCTQs,
+                    hasExpectedCTQs,
+                    hasEnoughQuestions,
+                    expectedCount: questionCount,
+                });
             }
         }
     }, [start, questions, questionCount, includeCriticalThinking]);
@@ -711,22 +732,28 @@ export function useQuiz(
         : undefined;
 
     function selectAnswer(answer: string) {
-        // Questions are already locked when start === true, but keep this as a safety check
-        // IMPORTANT: Only lock if CTQs are included (if they should be)
+        // Questions should already be locked by the useEffect when start === true
+        // If not locked yet, only lock if we have the right questions (including CTQs if needed)
         if (!lockedQuestionsRef.current && questions.length > 0) {
-            // If CTQs should be included, verify they're actually in the array before locking
             if (includeCriticalThinking) {
                 const ctqCount = questions.filter(q => q.isCriticalThinking).length;
-                if (ctqCount > 0) {
+                const expectedCTQCount = Math.floor(questionCount * 0.5);
+                if (ctqCount >= expectedCTQCount && questions.length >= questionCount) {
+                    console.warn("⚠️ Questions not locked yet, locking now as fallback (with CTQs)");
                     lockedQuestionsRef.current = questions;
-                    console.log("🔒 Questions locked on first answer (safety check). Total:", questions.length, "CTQs:", ctqCount);
                 } else {
-                    console.warn("⏳ Waiting to lock - CTQs should be included but not found yet");
+                    console.warn("⚠️ Cannot lock yet - waiting for CTQs. Current:", {
+                        ctqCount,
+                        expectedCTQCount,
+                        totalQuestions: questions.length,
+                    });
                 }
             } else {
-                // No CTQs expected, safe to lock
-                lockedQuestionsRef.current = questions;
-                console.log("🔒 Questions locked on first answer (safety check, no CTQs). Total:", questions.length);
+                // No CTQs needed, safe to lock
+                if (questions.length >= questionCount) {
+                    console.warn("⚠️ Questions not locked yet, locking now as fallback (no CTQs)");
+                    lockedQuestionsRef.current = questions;
+                }
             }
         }
         
