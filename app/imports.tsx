@@ -783,6 +783,8 @@ export default function Imports() {
   };
 
   const handleUpdateGitHub = async () => {
+    console.log("🔄 Update GitHub clicked", { activeTab, scope, githubToken: !!githubToken });
+    
     // Check if we have data to upload
     let dataToUpload: any[] = [];
     let dataType: "drug" | "question" = "question";
@@ -790,42 +792,52 @@ export default function Imports() {
 
     if (activeTab === "bulk") {
       if (bulkProcessedData.length === 0) {
+        console.log("❌ No bulk data to upload");
         Alert.alert("Error", "No validated data to upload. Please validate your data first.");
         return;
       }
       dataToUpload = bulkProcessedData;
       dataType = bulkDataType;
       dataScope = getPrimaryScope(bulkProcessedData);
+      console.log("✅ Bulk data ready", { count: dataToUpload.length, type: dataType, scope: dataScope });
     } else if (activeTab === "drug") {
       const drugCard = generateDrugCardJSON();
       if (!drugCard) {
+        console.log("❌ Drug card validation failed");
         Alert.alert("Error", "Please validate your drug card data first.");
         return;
       }
       dataToUpload = [drugCard];
       dataType = "drug";
       dataScope = scope;
+      console.log("✅ Drug card ready", { id: drugCard.id, scope: dataScope });
     } else if (activeTab === "question") {
       const question = generateQuestionJSON();
       if (!question) {
+        console.log("❌ Question validation failed");
         Alert.alert("Error", "Please validate your question data first.");
         return;
       }
       dataToUpload = [question];
       dataType = "question";
       dataScope = scope;
+      console.log("✅ Question ready", { id: question.id, scope: dataScope });
     }
 
     // Check for GitHub token
-    if (!githubToken) {
+    if (!githubToken || githubToken.trim() === "") {
+      console.log("❌ No GitHub token");
       Alert.alert(
         "GitHub Token Required",
         "Please enter your GitHub Personal Access Token to update files.",
         [
           { text: "Cancel", style: "cancel" },
           {
-            text: "Enter Token",
-            onPress: () => setShowTokenInput(true),
+            text: "OK",
+            onPress: () => {
+              // Focus on token input (scroll to it)
+              console.log("Token input requested");
+            },
           },
         ]
       );
@@ -836,43 +848,75 @@ export default function Imports() {
     const fileName = getTargetFileName(dataScope, dataType);
     const dataTypeLabel = dataType === "drug" ? "drug card(s)" : "question(s)";
 
-    // Show confirmation dialog
-    Alert.alert(
-      "Confirm GitHub Update",
-      `Are you sure you want to update ${fileName}?\n\n` +
+    console.log("📋 Showing confirmation", { fileName, itemCount: dataToUpload.length });
+
+    // Show confirmation dialog - use window.confirm for web, Alert.alert for native
+    const confirmMessage = `Are you sure you want to update ${fileName}?\n\n` +
       `• ${dataToUpload.length} ${dataTypeLabel} will be added/updated\n` +
       `• Existing data will be preserved\n` +
       `• Items with matching IDs will be updated\n\n` +
-      `This action will modify the file on GitHub.`,
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-        {
-          text: "Update GitHub",
-          style: "default",
-          onPress: () => performGitHubUpdate(fileName, dataToUpload),
-        },
-      ]
-    );
+      `This action will modify the file on GitHub.`;
+
+    if (Platform.OS === "web" && typeof window !== "undefined" && window.confirm) {
+      // Use browser confirm for web
+      const confirmed = window.confirm(`Confirm GitHub Update\n\n${confirmMessage}`);
+      if (confirmed) {
+        console.log("✅ Confirmed, starting update...");
+        performGitHubUpdate(fileName, dataToUpload);
+      } else {
+        console.log("❌ Update cancelled");
+      }
+    } else {
+      // Use Alert.alert for native
+      Alert.alert(
+        "Confirm GitHub Update",
+        confirmMessage,
+        [
+          {
+            text: "Cancel",
+            style: "cancel",
+            onPress: () => console.log("❌ Update cancelled"),
+          },
+          {
+            text: "Update GitHub",
+            style: "default",
+            onPress: () => {
+              console.log("✅ Confirmed, starting update...");
+              performGitHubUpdate(fileName, dataToUpload);
+            },
+          },
+        ]
+      );
+    }
   };
 
   const performGitHubUpdate = async (fileName: string, dataToUpload: any[]) => {
+    console.log("🚀 Starting GitHub update", { fileName, itemCount: dataToUpload.length });
     setIsUpdating(true);
 
     try {
       // Get existing file
+      console.log("📥 Fetching existing file from GitHub...");
       const existingFile = await getFileFromGitHub(fileName);
       
       if (!existingFile) {
         throw new Error("Failed to fetch existing file");
       }
 
+      console.log("✅ File fetched", { 
+        existingItems: existingFile.content.length, 
+        sha: existingFile.sha.substring(0, 10) + "..." 
+      });
+
       // Merge data
       const mergedData = mergeData(existingFile.content, dataToUpload);
+      console.log("✅ Data merged", { 
+        totalItems: mergedData.length,
+        newItems: mergedData.length - existingFile.content.length
+      });
       
       // Update file
+      console.log("📤 Uploading to GitHub...");
       const success = await updateFileOnGitHub(
         fileName,
         mergedData,
@@ -884,6 +928,8 @@ export default function Imports() {
           (item) => !existingFile.content.some((existing: any) => existing.id === item.id)
         ).length;
         const updatedItems = dataToUpload.length - newItems;
+        
+        console.log("✅ Update successful", { newItems, updatedItems, total: mergedData.length });
         
         Alert.alert(
           "Success",
@@ -907,13 +953,14 @@ export default function Imports() {
         );
       }
     } catch (error: any) {
-      console.error("GitHub update error:", error);
+      console.error("❌ GitHub update error:", error);
       Alert.alert(
         "Update Failed",
         error.message || "Failed to update GitHub. Please check your token and try again."
       );
     } finally {
       setIsUpdating(false);
+      console.log("🏁 Update process finished");
     }
   };
 
