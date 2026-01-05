@@ -927,7 +927,7 @@ export default function Imports() {
                 <Text style={styles.backLink}>← Back to Home</Text>
               </TouchableOpacity>
             </Link>
-            <Text style={styles.title}>Data Validation & Update Tool</Text>
+            <Text style={styles.title}>To make Lauren's life easier</Text>
             <Text style={styles.subtitle}>
               Validate and update drug cards and critical thinking questions
             </Text>
