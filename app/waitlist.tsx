@@ -25,6 +25,7 @@ const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw1pQTn89ctOK
 export default function Waitlist() {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const handleJoinWaitlist = async () => {
     const trimmed = email.trim();
@@ -78,11 +79,12 @@ export default function Waitlist() {
 
         // Check if response indicates success (either JSON with status: "success" or plain text)
         if (data && (data.status === "success" || responseText.toLowerCase().includes("success"))) {
-          Alert.alert(
-            "You're on the list!",
-            "We'll email you when Mediccards is live on Google Play."
-          );
           setEmail("");
+          setIsSuccess(true);
+          // Auto-hide success message after 5 seconds
+          setTimeout(() => {
+            setIsSuccess(false);
+          }, 5000);
         } else {
           Alert.alert(
             "Something went wrong",
@@ -149,27 +151,39 @@ export default function Waitlist() {
               Android app is available on Google Play.
             </Text>
 
-            <Text style={styles.label}>Email address</Text>
-            <TextInput
-              style={styles.input}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              value={email}
-              onChangeText={setEmail}
-              placeholder="you@example.com"
-              placeholderTextColor={colors.textMuted}
-            />
+            {isSuccess ? (
+              <View style={styles.successContainer}>
+                <Text style={styles.successIcon}>✓</Text>
+                <Text style={styles.successTitle}>You're on the list!</Text>
+                <Text style={styles.successText}>
+                  We'll email you when Mediccards is live on Google Play.
+                </Text>
+              </View>
+            ) : (
+              <>
+                <Text style={styles.label}>Email address</Text>
+                <TextInput
+                  style={styles.input}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="you@example.com"
+                  placeholderTextColor={colors.textMuted}
+                />
 
-            <TouchableOpacity
-              style={[styles.button, isSubmitting && styles.buttonDisabled]}
-              onPress={isSubmitting ? undefined : handleJoinWaitlist}
-              disabled={isSubmitting}
-            >
-              <Text style={styles.buttonText}>
-                {isSubmitting ? "Submitting..." : "Notify Me"}
-              </Text>
-            </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.button, isSubmitting && styles.buttonDisabled]}
+                  onPress={isSubmitting ? undefined : handleJoinWaitlist}
+                  disabled={isSubmitting}
+                >
+                  <Text style={styles.buttonText}>
+                    {isSubmitting ? "Submitting..." : "Notify Me"}
+                  </Text>
+                </TouchableOpacity>
+              </>
+            )}
 
             <Text style={styles.smallPrint}>
               We respect your privacy. Your email will only be used to send a
@@ -305,6 +319,34 @@ const styles = StyleSheet.create({
     fontSize: isMobile ? 11 : 12,
     color: colors.textMuted,
     lineHeight: isMobile ? 16 : 18,
+  },
+  successContainer: {
+    backgroundColor: "#F0FDF4",
+    borderWidth: 2,
+    borderColor: "#22C55E",
+    borderRadius: 12,
+    padding: spacing.xl,
+    alignItems: "center",
+    marginBottom: spacing.md,
+  },
+  successIcon: {
+    fontSize: 48,
+    color: "#22C55E",
+    fontWeight: "bold",
+    marginBottom: spacing.sm,
+  },
+  successTitle: {
+    fontSize: isMobile ? 20 : 24,
+    fontWeight: "bold",
+    color: "#16A34A",
+    marginBottom: spacing.xs,
+    textAlign: "center",
+  },
+  successText: {
+    fontSize: isMobile ? 14 : 16,
+    color: "#15803D",
+    textAlign: "center",
+    lineHeight: isMobile ? 20 : 24,
   },
   footer: {
     alignItems: "center",
