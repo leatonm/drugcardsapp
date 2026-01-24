@@ -41,11 +41,6 @@ export default function Index() {
                 style={styles.screenshot}
                 resizeMode="cover"
               />
-              <Image
-                source={require("../assets/Screenshot2.png")}
-                style={styles.screenshot}
-                resizeMode="cover"
-              />
             </View>
 
             <View style={styles.buttonContainer}>
