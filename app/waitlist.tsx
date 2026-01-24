@@ -16,7 +16,7 @@ import { spacing } from "../styles/spacing";
 
 // TODO: Replace this with your deployed Google Apps Script URL.
 // Example: const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx.../exec";
-const GOOGLE_SCRIPT_URL = "";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw1pQTn89ctOKmP7VG4VcNIdfx2akPQiBSP2CqzC_YkDGtAgJILj8kL16_t0cL3Oniu/exec";
 
 export default function Waitlist() {
   const [email, setEmail] = useState("");
