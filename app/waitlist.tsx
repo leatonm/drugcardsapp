@@ -46,13 +46,10 @@ export default function Waitlist() {
 
       const response = await fetch(GOOGLE_SCRIPT_URL, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+        body: new URLSearchParams({
           email: trimmed,
           source: "mediccards-waitlist",
-        }),
+        }).toString(),
       });
 
       // Google Apps Script may return text or JSON
@@ -60,28 +57,35 @@ export default function Waitlist() {
       console.log("Response status:", response.status);
       console.log("Response text:", responseText);
 
-      let data;
-      try {
-        data = JSON.parse(responseText);
-      } catch {
-        // If not JSON, assume success if we got a 200-299 status
-        if (response.ok) {
+      // Handle response - Google Apps Script typically returns text or JSON
+      if (response.ok) {
+        // Try to parse as JSON first
+        let data;
+        try {
+          data = JSON.parse(responseText);
+        } catch {
+          // If not JSON, treat plain text response as success
           data = { status: "success" };
-        } else {
-          data = { status: "error", message: responseText };
         }
-      }
 
-      if (response.ok && data && data.status === "success") {
-        Alert.alert(
-          "You're on the list!",
-          "We'll email you when Mediccards is live on Google Play."
-        );
-        setEmail("");
+        // Check if response indicates success (either JSON with status: "success" or plain text)
+        if (data && (data.status === "success" || responseText.toLowerCase().includes("success"))) {
+          Alert.alert(
+            "You're on the list!",
+            "We'll email you when Mediccards is live on Google Play."
+          );
+          setEmail("");
+        } else {
+          Alert.alert(
+            "Something went wrong",
+            data?.message || responseText || "We couldn't save your email right now. Please try again in a moment."
+          );
+        }
       } else {
+        // Non-OK response status
         Alert.alert(
           "Something went wrong",
-          data?.message || "We couldn't save your email right now. Please try again in a moment."
+          responseText || "We couldn't save your email right now. Please try again in a moment."
         );
       }
     } catch (error) {
