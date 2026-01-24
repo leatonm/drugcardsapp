@@ -1,5 +1,5 @@
 import { Link } from "expo-router";
-import { StyleSheet, Text, View, ScrollView } from "react-native";
+import { StyleSheet, Text, View, ScrollView, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors } from "../styles/colors";
 import { spacing } from "../styles/spacing";
@@ -10,6 +10,11 @@ export default function Index() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.container}>
           <View style={styles.header}>
+            <Image
+              source={require("../assets/logo.png")}
+              style={styles.logo}
+              resizeMode="contain"
+            />
             <Text style={styles.title}>Mediccards</Text>
             <Text style={styles.subtitle}>
               Professional Medical Reference Application
@@ -29,7 +34,26 @@ export default function Index() {
               </Text>
             </View>
 
+            {/* Screenshots */}
+            <View style={styles.screenshotRow}>
+              <Image
+                source={require("../assets/Screenshot1.png")}
+                style={styles.screenshot}
+                resizeMode="cover"
+              />
+              <Image
+                source={require("../assets/Screenshot2.png")}
+                style={styles.screenshot}
+                resizeMode="cover"
+              />
+            </View>
+
             <View style={styles.buttonContainer}>
+              {/* Waitlist link above Contact Us */}
+              <Link href="/waitlist" style={styles.button}>
+                <Text style={styles.buttonText}>Join Waiting List</Text>
+              </Link>
+
               <Link href="/contact" style={styles.button}>
                 <Text style={styles.buttonText}>Contact Us</Text>
               </Link>
@@ -71,6 +95,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: spacing.xl * 2,
     marginBottom: spacing.xl * 2,
+  },
+  logo: {
+    width: 160,
+    height: 160,
+    marginBottom: spacing.lg,
   },
   title: {
     fontSize: 48,

@@ -6,6 +6,7 @@ export default function RootLayout() {
       <Stack.Screen name="index" />
       <Stack.Screen name="contact" />
       <Stack.Screen name="privacy" />
+      <Stack.Screen name="waitlist" />
     </Stack>
   );
 }
