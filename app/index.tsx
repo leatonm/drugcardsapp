@@ -1,8 +1,11 @@
 import { Link } from "expo-router";
-import { StyleSheet, Text, View, ScrollView, Image } from "react-native";
+import { StyleSheet, Text, View, ScrollView, Image, Dimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors } from "../styles/colors";
 import { spacing } from "../styles/spacing";
+
+const { width: screenWidth } = Dimensions.get("window");
+const isMobile = screenWidth < 768;
 
 export default function Index() {
   return (
@@ -80,31 +83,31 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.xl,
+    paddingHorizontal: isMobile ? spacing.md : spacing.xl,
+    paddingVertical: isMobile ? spacing.lg : spacing.xl,
     maxWidth: 800,
     alignSelf: "center",
     width: "100%",
   },
   header: {
     alignItems: "center",
-    marginTop: spacing.xl * 2,
-    marginBottom: spacing.xl * 2,
+    marginTop: isMobile ? spacing.xl : spacing.xl * 2,
+    marginBottom: isMobile ? spacing.xl : spacing.xl * 2,
   },
   logo: {
-    width: 160,
-    height: 160,
+    width: isMobile ? 120 : 160,
+    height: isMobile ? 120 : 160,
     marginBottom: spacing.lg,
   },
   title: {
-    fontSize: 48,
+    fontSize: isMobile ? 32 : 48,
     fontWeight: "bold",
     color: colors.primary,
     marginBottom: spacing.md,
     textAlign: "center",
   },
   subtitle: {
-    fontSize: 18,
+    fontSize: isMobile ? 16 : 18,
     color: colors.textMuted,
     textAlign: "center",
   },
@@ -116,9 +119,9 @@ const styles = StyleSheet.create({
   descriptionSection: {
     width: "100%",
     maxWidth: 800,
-    marginBottom: spacing.xl * 2,
+    marginBottom: isMobile ? spacing.xl : spacing.xl * 2,
     backgroundColor: colors.surface,
-    padding: spacing.xl,
+    padding: isMobile ? spacing.md : spacing.xl,
     borderRadius: 8,
     shadowColor: "#000",
     shadowOffset: {
@@ -130,11 +133,22 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   descriptionText: {
-    fontSize: 16,
+    fontSize: isMobile ? 14 : 16,
     color: colors.textMuted,
-    lineHeight: 24,
+    lineHeight: isMobile ? 20 : 24,
     marginBottom: spacing.md,
     textAlign: "left",
+  },
+  screenshotRow: {
+    marginBottom: spacing.xl * 3,
+    alignItems: "center",
+    width: "100%",
+  },
+  screenshot: {
+    width: isMobile ? Math.min(screenWidth - spacing.xl * 2, 500) : 500,
+    height: isMobile ? (Math.min(screenWidth - spacing.xl * 2, 500) * 0.6) : 300,
+    borderRadius: 12,
+    backgroundColor: colors.surface,
   },
   buttonContainer: {
     width: "100%",
@@ -143,16 +157,16 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: colors.primary,
-    paddingVertical: spacing.lg,
+    paddingVertical: isMobile ? spacing.md : spacing.lg,
     paddingHorizontal: spacing.xl,
     borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
-    minHeight: 56,
+    minHeight: isMobile ? 48 : 56,
   },
   buttonText: {
     color: colors.buttonText,
-    fontSize: 18,
+    fontSize: isMobile ? 16 : 18,
     fontWeight: "600",
   },
   footer: {

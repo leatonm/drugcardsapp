@@ -1,8 +1,11 @@
 import { Link } from "expo-router";
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from "react-native";
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Dimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors } from "../styles/colors";
 import { spacing } from "../styles/spacing";
+
+const { width: screenWidth } = Dimensions.get("window");
+const isMobile = screenWidth < 768;
 
 export default function Contact() {
   return (
@@ -68,23 +71,23 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.xl,
+    paddingHorizontal: isMobile ? spacing.md : spacing.xl,
+    paddingVertical: isMobile ? spacing.lg : spacing.xl,
     maxWidth: 800,
     alignSelf: "center",
     width: "100%",
   },
   header: {
-    marginBottom: spacing.xl,
+    marginBottom: isMobile ? spacing.lg : spacing.xl,
   },
   backLink: {
-    fontSize: 16,
+    fontSize: isMobile ? 14 : 16,
     color: colors.primary,
     marginBottom: spacing.lg,
     fontWeight: "500",
   },
   title: {
-    fontSize: 36,
+    fontSize: isMobile ? 28 : 36,
     fontWeight: "bold",
     color: colors.primary,
     marginBottom: spacing.lg,
@@ -93,9 +96,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   section: {
-    marginBottom: spacing.xl,
+    marginBottom: isMobile ? spacing.lg : spacing.xl,
     backgroundColor: colors.surface,
-    padding: spacing.xl,
+    padding: isMobile ? spacing.md : spacing.xl,
     borderRadius: 8,
     shadowColor: "#000",
     shadowOffset: {
@@ -107,18 +110,18 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   sectionTitle: {
-    fontSize: 24,
+    fontSize: isMobile ? 20 : 24,
     fontWeight: "600",
     color: colors.primary,
     marginBottom: spacing.md,
   },
   description: {
-    fontSize: 16,
+    fontSize: isMobile ? 14 : 16,
     color: colors.textMuted,
-    lineHeight: 24,
+    lineHeight: isMobile ? 20 : 24,
   },
   emailLink: {
-    fontSize: 18,
+    fontSize: isMobile ? 16 : 18,
     color: colors.accent,
     fontWeight: "500",
     textDecorationLine: "underline",

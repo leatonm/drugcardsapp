@@ -9,10 +9,14 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors } from "../styles/colors";
 import { spacing } from "../styles/spacing";
+
+const { width: screenWidth } = Dimensions.get("window");
+const isMobile = screenWidth < 768;
 
 // TODO: Replace this with your deployed Google Apps Script URL.
 // Example: const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx.../exec";
@@ -51,13 +55,24 @@ export default function Waitlist() {
         }),
       });
 
-      if (!response.ok) {
-        throw new Error(`Request failed with status ${response.status}`);
+      // Google Apps Script may return text or JSON
+      const responseText = await response.text();
+      console.log("Response status:", response.status);
+      console.log("Response text:", responseText);
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch {
+        // If not JSON, assume success if we got a 200-299 status
+        if (response.ok) {
+          data = { status: "success" };
+        } else {
+          data = { status: "error", message: responseText };
+        }
       }
 
-      const data = await response.json().catch(() => null);
-
-      if (data && data.status === "success") {
+      if (response.ok && data && data.status === "success") {
         Alert.alert(
           "You're on the list!",
           "We'll email you when Mediccards is live on Google Play."
@@ -66,14 +81,14 @@ export default function Waitlist() {
       } else {
         Alert.alert(
           "Something went wrong",
-          "We couldn't save your email right now. Please try again in a moment."
+          data?.message || "We couldn't save your email right now. Please try again in a moment."
         );
       }
     } catch (error) {
       console.error("Error submitting waitlist email:", error);
       Alert.alert(
         "Network error",
-        "Unable to submit your email. Please check your connection and try again."
+        `Unable to submit your email: ${error instanceof Error ? error.message : "Unknown error"}. Please check your connection and try again.`
       );
     } finally {
       setIsSubmitting(false);
@@ -104,12 +119,12 @@ export default function Waitlist() {
           {/* Screenshots */}
           <View style={styles.screenshotRow}>
             <Image
-              source={require("../assets/Screenshot1.png")}
+              source={require("../assets/Screenshot2.png")}
               style={styles.screenshot}
               resizeMode="cover"
             />
             <Image
-              source={require("../assets/Screenshot2.png")}
+              source={require("../assets/Screenshot3.png")}
               style={styles.screenshot}
               resizeMode="cover"
             />
@@ -171,56 +186,57 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.xl,
+    paddingHorizontal: isMobile ? spacing.md : spacing.xl,
+    paddingVertical: isMobile ? spacing.lg : spacing.xl,
     maxWidth: 800,
     alignSelf: "center",
     width: "100%",
   },
   header: {
-    marginBottom: spacing.xl,
+    marginBottom: isMobile ? spacing.lg : spacing.xl,
     alignItems: "center",
   },
   backLink: {
-    fontSize: 16,
+    fontSize: isMobile ? 14 : 16,
     color: colors.primary,
     alignSelf: "flex-start",
     marginBottom: spacing.lg,
     fontWeight: "500",
   },
   logo: {
-    width: 140,
-    height: 140,
+    width: isMobile ? 100 : 140,
+    height: isMobile ? 100 : 140,
     marginBottom: spacing.lg,
   },
   title: {
-    fontSize: 32,
+    fontSize: isMobile ? 24 : 32,
     fontWeight: "bold",
     color: colors.primary,
     marginBottom: spacing.sm,
     textAlign: "center",
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: isMobile ? 14 : 16,
     color: colors.textMuted,
     textAlign: "center",
     marginBottom: spacing.lg,
   },
   screenshotRow: {
-    flexDirection: "row",
+    flexDirection: isMobile ? "column" : "row",
     justifyContent: "center",
+    alignItems: "center",
     gap: spacing.md,
     marginBottom: spacing.xl,
   },
   screenshot: {
-    width: 150,
-    height: 300,
+    width: isMobile ? Math.min((screenWidth - spacing.xl * 2) * 0.45, 200) : 220,
+    height: isMobile ? Math.min((screenWidth - spacing.xl * 2) * 0.9, 400) : 440,
     borderRadius: 12,
     backgroundColor: colors.surface,
   },
   card: {
     backgroundColor: colors.surface,
-    padding: spacing.xl,
+    padding: isMobile ? spacing.md : spacing.xl,
     borderRadius: 12,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
@@ -229,19 +245,19 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   cardTitle: {
-    fontSize: 22,
+    fontSize: isMobile ? 20 : 22,
     fontWeight: "600",
     color: colors.primary,
     marginBottom: spacing.sm,
   },
   cardText: {
-    fontSize: 16,
+    fontSize: isMobile ? 14 : 16,
     color: colors.textMuted,
     marginBottom: spacing.lg,
-    lineHeight: 22,
+    lineHeight: isMobile ? 20 : 22,
   },
   label: {
-    fontSize: 14,
+    fontSize: isMobile ? 13 : 14,
     fontWeight: "600",
     color: colors.primary,
     marginBottom: spacing.xs,
@@ -251,14 +267,14 @@ const styles = StyleSheet.create({
     borderColor: colors.inputBorder,
     borderRadius: 8,
     padding: spacing.md,
-    fontSize: 16,
+    fontSize: isMobile ? 14 : 16,
     color: colors.primary,
     backgroundColor: colors.background,
     marginBottom: spacing.md,
   },
   button: {
     backgroundColor: colors.primary,
-    paddingVertical: spacing.md,
+    paddingVertical: isMobile ? spacing.md : spacing.lg,
     borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
@@ -270,13 +286,13 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: colors.buttonText,
-    fontSize: 16,
+    fontSize: isMobile ? 14 : 16,
     fontWeight: "600",
   },
   smallPrint: {
-    fontSize: 12,
+    fontSize: isMobile ? 11 : 12,
     color: colors.textMuted,
-    lineHeight: 18,
+    lineHeight: isMobile ? 16 : 18,
   },
   footer: {
     alignItems: "center",
