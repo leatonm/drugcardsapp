@@ -2,6 +2,7 @@ import { Link } from "expo-router";
 import { useState } from "react";
 import {
   Alert,
+  Dimensions,
   Image,
   ScrollView,
   StyleSheet,
@@ -9,7 +10,6 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors } from "../styles/colors";
@@ -44,12 +44,20 @@ export default function Waitlist() {
     try {
       setIsSubmitting(true);
 
+      const formData = new URLSearchParams({
+        email: trimmed,
+        source: "mediccards-waitlist",
+      });
+      
+      console.log("Sending data:", formData.toString());
+      console.log("Email value:", trimmed);
+
       const response = await fetch(GOOGLE_SCRIPT_URL, {
         method: "POST",
-        body: new URLSearchParams({
-          email: trimmed,
-          source: "mediccards-waitlist",
-        }).toString(),
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: formData.toString(),
       });
 
       // Google Apps Script may return text or JSON
