@@ -1,8 +1,11 @@
 import { Link } from "expo-router";
-import { StyleSheet, Text, View, ScrollView, Image, Dimensions } from "react-native";
+import { StyleSheet, Text, View, ScrollView, Image, Dimensions, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import * as Linking from "expo-linking";
 import { colors } from "../styles/colors";
 import { spacing } from "../styles/spacing";
+
+const GOOGLE_PLAY_URL = "https://play.google.com/store/apps/details?id=com.leatonmitchell.drugcardsapp";
 
 const { width: screenWidth } = Dimensions.get("window");
 const isMobile = screenWidth < 768;
@@ -47,10 +50,13 @@ export default function Index() {
             </View>
 
             <View style={styles.buttonContainer}>
-              {/* Waitlist link above Contact Us */}
-              <Link href="/waitlist" style={styles.button}>
-                <Text style={styles.buttonText}>Join Waiting List</Text>
-              </Link>
+              <TouchableOpacity
+                style={[styles.button, styles.googlePlayButton]}
+                onPress={() => Linking.openURL(GOOGLE_PLAY_URL)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.buttonText}>Download on Google Play</Text>
+              </TouchableOpacity>
 
               <Link href="/contact" style={styles.button}>
                 <Text style={styles.buttonText}>Contact Us</Text>
@@ -163,6 +169,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     minHeight: isMobile ? 48 : 56,
+  },
+  googlePlayButton: {
+    backgroundColor: "#0D1B2A",
   },
   buttonText: {
     color: colors.buttonText,
