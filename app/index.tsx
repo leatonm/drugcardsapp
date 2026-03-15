@@ -6,6 +6,7 @@ import { colors } from "../styles/colors";
 import { spacing } from "../styles/spacing";
 
 const GOOGLE_PLAY_URL = "https://play.google.com/store/apps/details?id=com.leatonmitchell.drugcardsapp";
+const APP_STORE_URL = "https://apps.apple.com/us/app/medicards-drug-card-app/id6759225487";
 
 const { width: screenWidth } = Dimensions.get("window");
 const isMobile = screenWidth < 768;
@@ -51,11 +52,19 @@ export default function Index() {
 
             <View style={styles.buttonContainer}>
               <TouchableOpacity
+                style={[styles.button, styles.appStoreButton]}
+                onPress={() => Linking.openURL(APP_STORE_URL)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.buttonText}>Download on the App Store</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
                 style={[styles.button, styles.googlePlayButton]}
                 onPress={() => Linking.openURL(GOOGLE_PLAY_URL)}
                 activeOpacity={0.8}
               >
-                <Text style={styles.buttonText}>Download on Google Play</Text>
+                <Text style={styles.buttonText}>Get it on Google Play</Text>
               </TouchableOpacity>
 
               <Link href="/contact" style={styles.button}>
@@ -169,6 +178,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     minHeight: isMobile ? 48 : 56,
+  },
+  appStoreButton: {
+    backgroundColor: "#000000",
   },
   googlePlayButton: {
     backgroundColor: "#0D1B2A",
